@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+imblearn
+torch
+gymnasium
+stable-baselines3
