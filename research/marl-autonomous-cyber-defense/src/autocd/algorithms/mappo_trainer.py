@@ -59,12 +59,18 @@ class CTDEActorCritic(nn.Module):
 
 class MAPPOTrainer:
     """Train MAPPO on a parallel-style env exposing reset/step and agent list."""
-    def __init__(self, env, config=None, *, seed=42, device="cpu"):
+    def __init__(self, env, config=None, *, seed=42, device="cpu",
+                 reward_aggregation="sum"):
+        if reward_aggregation not in {"sum", "mean"}:
+            raise ValueError("reward_aggregation must be 'sum' or 'mean'")
         self.env = env
         self.cfg = config or MAPPOConfig()
         self.device = torch.device(device)
+        self.seed, self.episode_index = int(seed), 0
+        self.reward_aggregation = reward_aggregation
         np.random.seed(seed)
         torch.manual_seed(seed)
+        self.generator = torch.Generator(device=self.device).manual_seed(seed)
         obs, infos = env.reset(seed=seed)
         self.agents = tuple(env.possible_agents)
         if not self.agents:
@@ -119,27 +125,35 @@ class MAPPOTrainer:
                     mask = self._mask(a, self._infos)
                     mask_t = torch.as_tensor(mask, dtype=torch.bool, device=self.device)
                     dist = self.model.distribution(a, ob, mask_t)
-                    act = dist.sample()
+                    act = torch.multinomial(dist.probs, 1, generator=self.generator).squeeze(-1)
                     action_dict[a] = int(act.item())
                     obs_row[a] = np.asarray(self._obs[a], dtype=np.float32)
                     action_row[a] = int(act.item())
                     logp_row[a] = float(dist.log_prob(act).item())
                     mask_row[a] = mask
             next_obs, rewards, terms, truncs, next_infos = self.env.step(action_dict)
-            terminated_team = all(bool(terms.get(a, False)) for a in self.agents)
-            boundary = all(bool(terms.get(a, False) or truncs.get(a, False)) for a in self.agents)
-            team_reward = float(np.mean([rewards.get(a, 0.0) for a in self.agents]))
+            term_flags = [bool(terms.get(a, False)) for a in self.agents]
+            trunc_flags = [bool(truncs.get(a, False)) for a in self.agents]
+            done_flags = [t or tr for t, tr in zip(term_flags, trunc_flags)]
+            if any(done_flags) and not all(done_flags):
+                raise RuntimeError("Partial agent termination is unsupported for shared team critic")
+            terminated_team = all(term_flags)
+            boundary = all(done_flags)
+            team_reward = float(sum(rewards.get(a, 0.0) for a in self.agents))
+            if self.reward_aggregation == "mean":
+                team_reward /= len(self.agents)
             current_return += team_reward
             if terminated_team:
                 next_value = 0.0
             else:
-                try:
-                    next_state = self._state(next_obs)
-                    with torch.no_grad():
-                        next_value = float(self.model.value(torch.as_tensor(
-                            next_state, dtype=torch.float32, device=self.device)).item())
-                except (KeyError, ValueError):
-                    next_value = 0.0
+                if set(next_obs) != set(self.agents):
+                    if boundary:
+                        raise RuntimeError("Truncated episode must return final observations for bootstrapping")
+                    raise RuntimeError("Environment omitted an agent observation mid-episode")
+                next_state = self._state(next_obs)
+                with torch.no_grad():
+                    next_value = float(self.model.value(torch.as_tensor(
+                        next_state, dtype=torch.float32, device=self.device)).item())
             rows["states"].append(state)
             rows["rewards"].append(team_reward)
             rows["terminated"].append(float(terminated_team))
@@ -154,7 +168,8 @@ class MAPPOTrainer:
             if boundary:
                 episode_returns.append(current_return)
                 current_return = 0.0
-                self._obs, self._infos = self.env.reset()
+                self.episode_index += 1
+                self._obs, self._infos = self.env.reset(seed=self.seed + self.episode_index)
         rows["bootstrap"] = rows["next_values"][-1]
         rows["episode_returns"] = episode_returns
         return rows
@@ -185,7 +200,7 @@ class MAPPOTrainer:
                                       dtype=torch.bool, device=self.device) for a in self.agents}
         actor_losses, critic_losses, entropies = [], [], []
         for _ in range(self.cfg.update_epochs):
-            permutation = torch.randperm(n, device=self.device)
+            permutation = torch.randperm(n, device=self.device, generator=self.generator)
             for start in range(0, n, self.cfg.minibatch_size):
                 idx = permutation[start:start + self.cfg.minibatch_size]
                 critic_values = self.model.value(states[idx])
