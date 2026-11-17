@@ -46,8 +46,11 @@ config files rather than relying on prose descriptions.
 
 ## Splits and sample sizes
 
-Create disjoint training, validation and final-test scenario seeds/configs.
-Use at least 10 independent training seeds where feasible. For final
+Create disjoint training, validation, calibration and final-test scenario seeds/configs.
+For the supervised risk estimator, keep model fitting, early stopping, temperature
+calibration and final metric reporting on four separate episode-seed partitions.
+Use episode-clustered confidence intervals for risk metrics; individual time steps
+within an episode are not independent observations. Use at least 10 independent training seeds where feasible. For final
 evaluation target 100 episodes per method and scenario, with episode-level
 records and paired seed/scenario comparisons. The official CC4 evaluation
 protocol also reports 100 randomized episodes of 500 steps; match it when
