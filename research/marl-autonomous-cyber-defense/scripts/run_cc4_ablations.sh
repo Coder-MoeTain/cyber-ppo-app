@@ -59,4 +59,8 @@ run_variant mean_team_reward predicted semantic mean
   --mean-reward-glob "$RESULTS/mean_team_reward_seed*.jsonl" \
   --output "$RESULTS/ablation_analysis.json"
 
+"$PYTHON" scripts/artifact_manifest.py create \
+  --paths "$OUT" "$RESULTS" "$RISK_CHECKPOINT" \
+  --output "$RESULTS/artifact_manifest.json"
+
 echo "Ablation matrix complete. Inspect raw records, confidence intervals and diagnostics."
