@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1220"><title>Sentinel MARL | Research Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#"><span class="brand-mark">S</span><span><b>SENTINEL</b><small>MARL RESEARCH LAB</small></span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav class="nav">
+      <a class="nav-item active" href="#overview" data-view="overview"><span>◫</span> Overview</a>
+      <a class="nav-item" href="#agents" data-view="agents"><span>⌘</span> Agent fleet</a>
+      <a class="nav-item" href="#experiments" data-view="experiments"><span>◷</span> Experiments</a>
+      <a class="nav-item" href="#evaluation" data-view="evaluation"><span>⌁</span> Evaluation</a>
+      <a class="nav-item" href="#environment" data-view="environment"><span>▦</span> Environment</a>
+    </nav>
+    <div class="sidebar-bottom"><div class="connection"><i></i><span>Research workspace</span><b>LOCAL</b></div><div class="user"><div class="avatar">RL</div><span><b>Researcher</b><small>Principal investigator</small></span><span class="more">···</span></div></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><button class="mobile-menu" id="menuBtn" aria-label="Toggle navigation">☰</button><div class="breadcrumb">Research workspace <span>/</span> <b id="crumb">Overview</b></div><div class="top-actions"><span class="env-pill"><i></i> MOCK ENVIRONMENT</span><button class="icon-btn" title="Notifications">♧</button><div class="avatar small">RL</div></div></header>
+    <section class="content">
+      <div class="page-heading"><div><div class="eyebrow">AUTONOMOUS CYBER DEFENSE / CONTROL PLANE</div><h1 id="pageTitle">Research overview</h1><p>Monitor cooperative agents, training health and experiment readiness.</p></div><div class="heading-actions"><button class="btn btn-quiet" id="exportBtn">↓ Export snapshot</button><button class="btn btn-primary" id="runBtn">▶ Run mock episode</button></div></div>
+      <div class="notice"><span class="notice-icon">i</span><div><b>Simulation preview</b><p>Dashboard values are illustrative mock data. Live CybORG telemetry and model controls are not connected yet.</p></div><span class="notice-tag">DEMO DATA</span></div>
+      <div class="section-head"><div><h2>Operational snapshot</h2><p>Latest mock run · seed 42 · CAGE-style five-agent team</p></div><span class="updated" id="lastUpdated">UPDATED JUST NOW</span></div>
+      <div class="metrics">
+        <article class="metric-card"><div class="metric-top"><span>TEAM REWARD</span><span class="metric-icon purple">↗</span></div><div class="metric-value" id="reward">+184.6</div><div class="metric-foot"><span class="positive">+12.8%</span> vs previous run</div><div class="sparkline purple-line"><svg viewBox="0 0 160 34"><path d="M0 28 L18 24 34 26 50 14 67 20 83 9 100 15 116 7 135 11 160 2"/></svg></div></article>
+        <article class="metric-card"><div class="metric-top"><span>ASSET EXPOSURE</span><span class="metric-icon amber">⌖</span></div><div class="metric-value">18.2<span class="unit">%</span></div><div class="metric-foot"><span class="positive">−6.4%</span> risk-weighted exposure</div><div class="sparkline amber-line"><svg viewBox="0 0 160 34"><path d="M0 4 L18 9 34 8 50 16 67 13 83 21 100 18 116 25 135 22 160 31"/></svg></div></article>
+        <article class="metric-card"><div class="metric-top"><span>SERVICE AVAILABILITY</span><span class="metric-icon green">◉</span></div><div class="metric-value">99.4<span class="unit">%</span></div><div class="metric-foot"><span class="positive">+0.7%</span> service health</div><div class="sparkline green-line"><svg viewBox="0 0 160 34"><path d="M0 22 L18 18 34 19 50 12 67 15 83 10 100 12 116 5 135 8 160 3"/></svg></div></article>
+        <article class="metric-card"><div class="metric-top"><span>ACTIVE AGENTS</span><span class="metric-icon blue">⌘</span></div><div class="metric-value">05<span class="unit">/05</span></div><div class="metric-foot"><span class="positive">All online</span> cooperative team</div><div class="agent-dots"><i></i><i></i><i></i><i></i><i></i></div></article>
+      </div>
+      <div class="grid-main">
+        <article class="panel chart-panel"><div class="panel-head"><div><h3>Training performance</h3><p>Illustrative episode reward trajectory</p></div><div class="chart-legend"><span><i class="legend-purple"></i> MAPPO</span><span><i class="legend-muted"></i> Baseline</span></div></div><div class="chart-wrap"><div class="y-labels"><span>200</span><span>150</span><span>100</span><span>50</span><span>0</span></div><svg class="performance-chart" viewBox="0 0 640 210" preserveAspectRatio="none" role="img" aria-label="Illustrative reward trend chart"><defs><linearGradient id="area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8b7cff" stop-opacity=".28"/><stop offset="1" stop-color="#8b7cff" stop-opacity="0"/></linearGradient></defs><path class="gridline" d="M0 8H640 M0 55H640 M0 102H640 M0 149H640 M0 196H640"/><path class="baseline" d="M0 177 C70 170 80 158 140 165 S220 142 280 151 S350 130 420 139 S510 119 570 127 L640 116"/><path class="reward-area" d="M0 190 C40 184 58 164 100 171 S160 132 210 143 S260 104 320 119 S390 78 440 93 S500 52 550 62 S600 35 640 20 L640 196 L0 196Z"/><path class="reward-line" d="M0 190 C40 184 58 164 100 171 S160 132 210 143 S260 104 320 119 S390 78 440 93 S500 52 550 62 S600 35 640 20"/></svg></div><div class="x-labels"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500 episodes</span></div></article>
+        <article class="panel readiness-panel"><div class="panel-head"><div><h3>Research readiness</h3><p>Implementation gates</p></div><span class="status status-warn">IN PROGRESS</span></div><div class="readiness-score"><strong>62%</strong><span>milestone completion</span></div><div class="progress"><i style="width:62%"></i></div><div class="gate-list"><div><span class="gate done">✓</span><span>Mock environment & PPO baseline</span><b>Done</b></div><div><span class="gate done">✓</span><span>MAPPO trainer & unit tests</span><b>Done</b></div><div><span class="gate warn">!</span><span>Live CybORG / CC4 validation</span><b>Pending</b></div><div><span class="gate pending">·</span><span>Risk-aware learned hierarchy</span><b>Planned</b></div></div></article>
+      </div>
+      <div class="section-head lower-head"><div><h2>Cooperative agent fleet</h2><p>Five Blue agents · decentralized execution / centralized training</p></div><a href="#agents" class="text-link" data-view="agents">View agent fleet →</a></div>
+      <div class="agent-grid" id="agentGrid">
+        <article class="agent-card"><div class="agent-head"><span class="agent-symbol">A1</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 01</h3><p>Endpoint monitoring</p><div class="agent-stats"><span>Policy entropy <b>0.84</b></span><span>Action confidence <b>92%</b></span></div><div class="mini-progress"><i style="width:92%"></i></div></article>
+        <article class="agent-card"><div class="agent-head"><span class="agent-symbol teal">A2</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 02</h3><p>Network defense</p><div class="agent-stats"><span>Policy entropy <b>0.79</b></span><span>Action confidence <b>88%</b></span></div><div class="mini-progress"><i style="width:88%"></i></div></article>
+        <article class="agent-card"><div class="agent-head"><span class="agent-symbol amber-bg">A3</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 03</h3><p>Threat investigation</p><div class="agent-stats"><span>Policy entropy <b>0.91</b></span><span>Action confidence <b>85%</b></span></div><div class="mini-progress"><i style="width:85%"></i></div></article>
+        <article class="agent-card"><div class="agent-head"><span class="agent-symbol blue-bg">A4</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 04</h3><p>Containment response</p><div class="agent-stats"><span>Policy entropy <b>0.73</b></span><span>Action confidence <b>94%</b></span></div><div class="mini-progress"><i style="width:94%"></i></div></article>
+        <article class="agent-card"><div class="agent-head"><span class="agent-symbol rose-bg">A5</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 05</h3><p>Recovery coordination</p><div class="agent-stats"><span>Policy entropy <b>0.88</b></span><span>Action confidence <b>89%</b></span></div><div class="mini-progress"><i style="width:89%"></i></div></article>
+      </div>
+      <div class="grid-bottom"><article class="panel"><div class="panel-head"><div><h3>Recent activity</h3><p>Mock experiment event stream</p></div><span class="live-label">● LIVE PREVIEW</span></div><div class="activity-list" id="activityList"><div class="activity"><i class="activity-dot purple-dot"></i><div><b>MAPPO rollout completed</b><small>5 agents · 128 steps · seed 42</small></div><time>12:42:08</time></div><div class="activity"><i class="activity-dot green-dot"></i><div><b>Service availability maintained</b><small>Critical services healthy · 99.4%</small></div><time>12:41:52</time></div><div class="activity"><i class="activity-dot amber-dot"></i><div><b>Elevated host risk observed</b><small>Agent 03 selected investigation action</small></div><time>12:41:31</time></div></div></article>
+      <article class="panel experiment-panel"><div class="panel-head"><div><h3>Quick experiment</h3><p>Configure a local preview run</p></div></div><label for="algorithm">ALGORITHM</label><select id="algorithm"><option>MAPPO</option><option>Independent PPO</option><option>PPO baseline</option><option>Rule-based baseline</option></select><div class="form-row"><div><label for="seed">SEED</label><input id="seed" type="number" value="42" min="0"></div><div><label for="steps">ROLLOUT STEPS</label><select id="steps"><option>128</option><option>256</option><option>512</option></select></div></div><button class="btn btn-primary full" id="configureRun">Preview configuration →</button><p class="form-hint">Preview only. This does not launch model training.</p></article></div>
+      <footer>Sentinel MARL Research Console <span>v0.3.0 · UI preview</span><span>Built for reproducible cyber-defense research</span></footer>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body></html>
