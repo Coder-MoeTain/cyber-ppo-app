@@ -7,6 +7,10 @@ on:
       - research/marl-autonomous-cyber-defense
     paths:
       - "research/marl-autonomous-cyber-defense/src/autocd/envs/**"
+      - "research/marl-autonomous-cyber-defense/src/autocd/algorithms/hierarchical_trainer.py"
+      - "research/marl-autonomous-cyber-defense/src/autocd/risk_model.py"
+      - "research/marl-autonomous-cyber-defense/scripts/collect_cc4_risk_dataset.py"
+      - "research/marl-autonomous-cyber-defense/scripts/smoke_ra_hmappo_cc4.py"
       - "research/marl-autonomous-cyber-defense/scripts/validate_cyborg.py"
       - "research/marl-autonomous-cyber-defense/tests/test_cyborg_adapter.py"
       - "research/marl-autonomous-cyber-defense/configs/cc4.lock.yaml"
@@ -37,6 +41,8 @@ jobs:
           cache-dependency-path: research/marl-autonomous-cyber-defense/requirements-cc4-validation.txt
       - name: Install pinned simulator runtime dependencies
         run: python -m pip install -r requirements-cc4-validation.txt
+      - name: Install CPU PyTorch for real-environment trainer smoke
+        run: python -m pip install torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
       - name: Install exact CAGE Challenge 4 simulator source
         run: python -m pip install --no-deps -e vendor/CybORG
       - name: Install research package without replacing simulator dependencies
@@ -47,6 +53,12 @@ jobs:
         run: python -m pytest -q vendor/CybORG/CybORG/Tests/test_cc4 --disable-warnings --maxfail=1
       - name: Validate adapter reset, action masks, seed replay and one real step
         run: python scripts/validate_cyborg.py --one-step --verify-seed
+      - name: Smoke collect privileged-label/local-observation risk dataset
+        run: python scripts/collect_cc4_risk_dataset.py --seeds 42 43 --steps 500 --output /tmp/cc4-risk-smoke.npz
+      - name: Check risk dataset integrity
+        run: python -c "import numpy as np; d=np.load('/tmp/cc4-risk-smoke.npz'); assert d['observations'].ndim==2 and len(d['labels'])>0 and np.isfinite(d['observations']).all() and set(np.unique(d['labels'])).issubset({0,1}); print({'shape': d['observations'].shape, 'positive_rate': float(d['labels'].mean())})"
+      - name: Smoke one real CC4 RA-HMAPPO rollout and update
+        run: python scripts/smoke_ra_hmappo_cc4.py --steps 8 --seed 42
       - name: Fail job if upstream CC4 tests failed
         if: always()
         env:
