@@ -86,9 +86,10 @@ Unavailable metrics must be marked as unavailable rather than inferred from rewa
 
 The current executable ablation runner implements:
 1. RA-HMAPPO with the trained risk estimator versus a constant-risk (0.5) control.
-2. Semantic task-specific action masks versus unconstrained task-to-action mapping (all legal base actions available to each task).
-3. Sum versus mean team-reward aggregation.
-4. Hierarchical manager/worker versus flat MAPPO in the main baseline matrix.
+2. Learned manager versus a deterministic risk-threshold manager (investigate above threshold; monitor otherwise, with legal-task fallback).
+3. Semantic task-specific action masks versus unconstrained task-to-action mapping (all legal base actions available to each task).
+4. Sum versus mean team-reward aggregation.
+5. Hierarchical manager/worker versus flat MAPPO in the main baseline matrix.
 
 Deterministic task allocation and risk-calibration/uncertainty variants remain planned, not implemented. The prior H-MARL approach [1] is a required additional comparator if a faithful reproduction is feasible. Each ablation must use the same ten training seeds, the same 100 held-out evaluation seeds, and matched environment interaction budgets.
 
