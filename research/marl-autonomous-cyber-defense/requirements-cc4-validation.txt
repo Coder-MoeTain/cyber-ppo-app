@@ -12,3 +12,5 @@ matplotlib==3.8.2
 networkx==3.2.1
 pygame==2.5.2
 rich==13.7.0
+ray[rllib]==2.9.3
+lz4==4.3.3
