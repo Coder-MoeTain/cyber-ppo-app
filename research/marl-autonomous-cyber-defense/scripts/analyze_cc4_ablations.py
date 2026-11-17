@@ -76,13 +76,32 @@ def main():
         values = np.asarray([r["team_reward_sum"] for r in records], dtype=float)
         if not np.isfinite(values).all():
             raise ValueError(f"Non-finite episode reward in {name}")
+        def mean_metric(items):
+            valid = [float(x) for x in items if x is not None and np.isfinite(float(x))]
+            return float(np.mean(valid)) if valid else None
+
         summaries[name] = {
             "episodes": int(values.size),
             "mean_team_reward_sum": float(values.mean()),
             "std_team_reward_sum": float(values.std(ddof=1)),
-            "mean_invalid_action_rate": float(np.mean(
-                [r.get("invalid_action_rate", np.nan) for r in records]
-            )),
+            "mean_invalid_action_rate": mean_metric(
+                [r.get("invalid_action_rate") for r in records]
+            ),
+            "mean_red_session_host_timesteps_per_step": mean_metric([
+                r.get("red_session_host_timesteps_per_step") for r in records
+            ]),
+            "mean_restore_actions_per_episode": mean_metric([
+                r.get("operational_action_counts", {}).get("restore_actions")
+                for r in records
+            ]),
+            "mean_traffic_control_actions_per_episode": mean_metric([
+                r.get("operational_action_counts", {}).get("traffic_control_actions")
+                for r in records
+            ]),
+            "mean_policy_inference_ms": mean_metric([
+                r.get("inference_latency_ms", {}).get("mean")
+                for r in records if r.get("inference_latency_ms")
+            ]),
         }
 
     result = {
