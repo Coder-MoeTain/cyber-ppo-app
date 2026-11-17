@@ -49,6 +49,10 @@ The analysis script now requires exactly the preregistered 10 training seeds and
 
 The standard policy matrix uses the same 100 episode seeds (501–600) for every method. Do not use these seeds for hyperparameter selection, early stopping, or checkpoint selection. Any scenario-shift evaluation requires its own versioned configs and held-out seed split.
 
+## Prior H-MARL comparison
+
+A separate, commit-pinned runner is documented in `docs/HMARL_BASELINE.md`. It requires an isolated Ray/RLlib 2.10 environment and the upstream saved policies. Run the 100 common evaluation seeds there, then rerun the paired analysis with `--hmarl-file results/standard_cc4/hmarl_meta.jsonl`. The upstream wrapper includes malicious-file features and communication that are not present in this project's policy interface; report this information mismatch explicitly.
+
 ## Ablations and manuscript
 
 The separate `scripts/run_cc4_ablations.sh` runner executes the full model plus four ablations (50 training runs total at the default ten seeds and one million steps each); budget approximately 50 million additional policy-training interactions plus held-out evaluation. It now implements matched-budget variants for constant-risk input, deterministic risk-threshold manager, unconstrained task-to-action mapping, and mean team-reward aggregation. It requires the risk checkpoint from the standard matrix. Run it only after the primary risk-model split workflow has completed. These variants do not replace the remaining planned deterministic-manager and calibration-uncertainty ablations. Do not label ablations complete until matched-budget runs, raw outputs and analysis have been reviewed. The manuscript draft intentionally leaves Results and Conclusion pending actual evidence.
