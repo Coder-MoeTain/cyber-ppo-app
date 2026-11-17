@@ -62,7 +62,8 @@ run_variant risk_rule_manager predicted semantic sum risk_rule
   --output "$RESULTS/ablation_analysis.json"
 
 "$PYTHON" scripts/artifact_manifest.py create \
-  --paths "$OUT" "$RESULTS" "$RISK_CHECKPOINT" \
+  --paths "$OUT" "$RESULTS" "$RISK_CHECKPOINT" configs/cc4.lock.yaml \
+  requirements-cc4-validation.txt pyproject.toml docs/EXPERIMENT_PROTOCOL.md \
   --output "$RESULTS/artifact_manifest.json"
 
 echo "Ablation matrix complete. Inspect raw records, confidence intervals and diagnostics."
