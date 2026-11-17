@@ -39,7 +39,7 @@ reproduction of a published competition agent. Report that limitation.
 After reviewing the configuration and reserving sufficient compute, run:
 
 ```bash
-bash scripts/run_standard_cc4_matrix.sh
+DEVICE=cuda bash scripts/run_standard_cc4_matrix.sh
 ```
 
 This orchestrates the risk dataset, risk model, ten training seeds for each
