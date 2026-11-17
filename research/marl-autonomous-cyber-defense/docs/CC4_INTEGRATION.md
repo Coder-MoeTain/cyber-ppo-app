@@ -21,15 +21,19 @@ With the pinned upstream source checked out under `vendor/CybORG`:
 
 ```bash
 python -m pip install -r requirements-cc4-validation.txt
+export PYTHONPATH="$PWD/vendor/CybORG:$PYTHONPATH"
 python -m pip install --no-deps -e vendor/CybORG
 python -m pip install --no-deps -e .
 python -m pytest -q vendor/CybORG/CybORG/Tests/test_cc4
 python scripts/validate_cyborg.py --one-step --verify-seed
 ```
 
-The official wrapper package imports its RLlib wrapper from the package
-initializer, so the validation dependency set includes a pinned Ray/RLlib
-version even though this project uses BlueFlatWrapper directly.
+The upstream source's setup metadata does not expose the CybORG package tree
+by itself, so add the checked-out source to PYTHONPATH as shown above. The
+official wrapper package also imports its RLlib and PettingZoo wrappers from
+the package initializer, so the validation dependency set includes pinned
+Ray/RLlib and PettingZoo versions even though this project uses BlueFlatWrapper
+directly.
 
 The integration workflow performs these checks in GitHub Actions. A passing
 smoke test confirms interface compatibility for the pinned version; it does
