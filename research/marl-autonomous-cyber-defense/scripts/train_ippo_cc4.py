@@ -40,9 +40,7 @@ def main():
             "cyborg_version": "4.0",
             "training_steps": args.steps,
         }, output)
-        output.with_suffix(".history.pt").write_bytes(
-            torch.save(history, output.with_suffix(".history.pt")) or b""
-        )
+        torch.save(history, output.with_suffix(".history.pt"))
         print({"checkpoint": str(output), "steps": args.steps, "seed": args.seed})
     finally:
         env.close()
