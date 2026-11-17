@@ -5,6 +5,7 @@ import numpy as np
 
 from autocd.envs.cyborg_adapter import CybORGAdapter
 from autocd.baselines.cc4_heuristic import CC4AlertGuidedPolicy
+from autocd.envs.cc4_tasks import CC4TaskActionMapper
 
 
 def _snapshot(seed):
@@ -38,12 +39,20 @@ def main():
         if len(dims) != 1 or len(action_dims) != 1:
             raise RuntimeError("pad_spaces=True did not produce common observation/action dimensions")
         masks = env.action_masks()
+        task_mapper = CC4TaskActionMapper(env.env)
+        task_availability = {}
         for agent, mask in masks.items():
             if mask.size != env.action_dims[agent] or not mask.any():
                 raise RuntimeError(f"Invalid action mask for {agent}")
             labels = env.env.action_labels(agent)
             if len(labels) != mask.size:
                 raise RuntimeError(f"Action labels/mask mismatch for {agent}")
+            task_masks = task_mapper(agent, obs[agent], infos.get(agent, {}), mask)
+            if task_masks.shape != (len(CC4TaskActionMapper.TASKS), mask.size):
+                raise RuntimeError(f"Task/action mask shape mismatch for {agent}")
+            if not task_masks[0].any():
+                raise RuntimeError(f"Monitor task has no valid action for {agent}")
+            task_availability[agent] = int(task_masks.any(axis=1).sum())
 
         report = {
             "cyborg_version": str(CYBORG_VERSION),
@@ -51,6 +60,7 @@ def main():
             "observation_dims": env.observation_dims,
             "action_dims": env.action_dims,
             "valid_action_counts": {a: int(m.sum()) for a, m in masks.items()},
+            "available_task_counts": task_availability,
             "seed": args.seed,
         }
 
