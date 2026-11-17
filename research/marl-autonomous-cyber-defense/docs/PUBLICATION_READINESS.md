@@ -25,6 +25,8 @@ been produced in this release.
 - [x] CI workflow definition added for Python 3.10/3.11 unit, regression and compile checks; successful CI execution remains pending.
 - [x] Analysis rejects incomplete default matrices (10 training seeds x 100
   held-out evaluation seeds), duplicate pairs and mismatched method seeds.
+- [x] Matched-budget ablation runner and paired analysis added for risk removal,
+  semantic task-mask removal and sum-versus-mean reward aggregation.
 - [x] Team UC-inspired stateful, action-mask-aware heuristic and simple
   alert-only comparator; neither is an exact competition-source reproduction.
 - [ ] Validate the Team UC-inspired implementation against published policy
@@ -56,7 +58,8 @@ been produced in this release.
   predeclared generalization shifts.
 - [ ] Report team/per-agent reward, red-session outcomes, availability,
   invalid-action rate, unnecessary intervention, latency and overhead.
-- [ ] Run risk-input, hierarchy, task-mapping and reward-aggregation ablations.
+- [ ] Execute the risk-input, task-mapping and reward-aggregation ablation matrix.
+- [ ] Add and execute deterministic task-allocation and risk-calibration/uncertainty ablations.
 - [ ] Archive raw episode records, configs, checkpoints, source provenance,
   statistical scripts and environment logs.
 - [ ] Complete novelty review, manuscript, verified citations, artifact license
