@@ -334,7 +334,11 @@ def checkpoints(_: None = Depends(require_auth)):
     if not RUNS.exists():
         return {"items": []}
     items = []
-    for path in sorted(RUNS.glob("*/*.pt"), key=lambda p: p.stat().st_mtime, reverse=True)[:100]:
+    for path in sorted(RUNS.glob("*/*.pt"), key=lambda p: p.stat().st_mtime, reverse=True):
+        if path.name.endswith(".history.pt"):
+            continue
+        if len(items) >= 100:
+            break
         items.append({
             "name": path.name, "path": str(path.relative_to(ROOT)),
             "size_bytes": path.stat().st_size,
