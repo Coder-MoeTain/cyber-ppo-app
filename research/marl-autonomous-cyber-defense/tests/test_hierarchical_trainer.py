@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import torch
 from autocd.algorithms.hierarchical_trainer import (
     RAHMAPPOConfig, RiskAwareHierarchicalTrainer,
 )
