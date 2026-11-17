@@ -3,8 +3,8 @@
 Research implementation for the CAGE Challenge 4 (CC4) enterprise cyber-defence
 benchmark. The package includes CTDE MAPPO, Independent PPO, a risk-conditioned
 hierarchical policy and PPO trainer, an offline-supervised risk estimator
-pipeline, a simple alert-guided heuristic, statistical utilities and a
-professional static dashboard prototype.
+pipeline, a Team UC-inspired heuristic plus a simple alert-only comparator,
+statistical utilities and a professional static dashboard prototype.
 
 ## Quick start
 
@@ -39,8 +39,9 @@ simulator step. See `requirements-cc4-validation.txt`.
   `scripts/evaluate_baseline_cc4.py`: evaluate on held-out seeds and write
   episode-level JSONL records.
 
-The alert-guided heuristic is a transparent baseline, not an exact reproduction
-of a published CC4 competition agent. The dashboard is a static frontend with
+The Team UC-inspired heuristic is an independent reimplementation, not an exact
+reproduction of a published CC4 competition agent; it omits malicious-file flags.
+The simpler alert-only comparator is also available. The dashboard is a static frontend with
 illustrative values and is not connected to live experiment telemetry.
 
 See `docs/PUBLICATION_READINESS.md` before making any publication claims.
