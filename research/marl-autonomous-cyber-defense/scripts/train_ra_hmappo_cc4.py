@@ -8,6 +8,7 @@ import torch
 from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
 from autocd.algorithms.hierarchical_trainer import RAHMAPPOConfig, RiskAwareHierarchicalTrainer
 from autocd.envs.cyborg_adapter import CybORGAdapter
+from autocd.envs.cc4_tasks import CC4TaskActionMapper
 from autocd.risk_model import RiskPredictor
 
 
@@ -30,10 +31,11 @@ def main():
     )
     try:
         risk_fn = RiskPredictor.load(args.risk_checkpoint, device=args.device)
-        config = RAHMAPPOConfig()
+        config = RAHMAPPOConfig(num_tasks=len(CC4TaskActionMapper.TASKS))
+        task_mapper = CC4TaskActionMapper(env.env)
         trainer = RiskAwareHierarchicalTrainer(
             env, risk_fn, config, seed=args.seed, device=args.device,
-            reward_aggregation="sum",
+            reward_aggregation="sum", task_action_mapper=task_mapper,
         )
         history = trainer.train(args.steps, args.rollout_steps)
         output = Path(args.output)
