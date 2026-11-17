@@ -195,14 +195,40 @@ def main():
     for name, p_adj in zip(labels, adjusted):
         comparisons[name]["holm_adjusted_p_value"] = p_adj
 
+    def mean_if_present(values):
+        values = [float(v) for v in values if v is not None and np.isfinite(float(v))]
+        return float(np.mean(values)) if values else None
+
     def summary(records):
         return {
             "episodes": len(records),
             "mean_team_reward_sum": float(np.mean([r["team_reward_sum"] for r in records])),
-            "mean_invalid_action_rate": float(np.mean([r.get("invalid_action_rate", 0.0) for r in records])),
-            "mean_red_session_hosts": float(np.mean([
-                sum(r.get("red_session_hosts_by_agent", {}).values()) for r in records
-            ])),
+            "mean_invalid_action_rate": mean_if_present(
+                [r.get("invalid_action_rate") for r in records]
+            ),
+            "mean_final_red_session_hosts": mean_if_present([
+                sum(r.get("red_session_hosts_by_agent", {}).values())
+                for r in records if r.get("red_session_hosts_by_agent") is not None
+            ]),
+            "mean_red_session_host_timesteps_per_step": mean_if_present([
+                r.get("red_session_host_timesteps_per_step") for r in records
+            ]),
+            "mean_restore_actions_per_episode": mean_if_present([
+                r.get("operational_action_counts", {}).get("restore_actions")
+                for r in records
+            ]),
+            "mean_traffic_control_actions_per_episode": mean_if_present([
+                r.get("operational_action_counts", {}).get("traffic_control_actions")
+                for r in records
+            ]),
+            "mean_policy_inference_ms": mean_if_present([
+                r.get("inference_latency_ms", {}).get("mean")
+                for r in records if r.get("inference_latency_ms")
+            ]),
+            "mean_policy_inference_p95_ms": mean_if_present([
+                r.get("inference_latency_ms", {}).get("p95")
+                for r in records if r.get("inference_latency_ms")
+            ]),
         }
 
     result = {
