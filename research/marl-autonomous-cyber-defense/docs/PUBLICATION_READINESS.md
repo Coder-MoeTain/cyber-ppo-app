@@ -18,10 +18,10 @@ been produced in this release.
 - [x] Independent PPO baseline with decentralized critics; mock tests added.
 - [x] Offline-supervised risk-estimation pipeline with held-out calibration
   metrics; data collection uses simulator ground truth only for labels.
-- [x] Basic alert-guided, action-mask-aware heuristic baseline; not an exact
-  reproduction of a published competition submission.
-- [ ] Strengthen the heuristic baseline to represent the challenge literature;
-  the current Analyse/Sleep policy is preliminary only.
+- [x] Team UC-inspired stateful, action-mask-aware heuristic and simple
+  alert-only comparator; neither is an exact competition-source reproduction.
+- [ ] Validate the Team UC-inspired implementation against the published
+  policy details and report its missing malicious-file features.
 - [x] Official CAGE Challenge 4 source revision pinned in `configs/cc4.lock.yaml`.
 - [ ] Pass official upstream CC4 tests and live adapter reset/seed/step validation.
 - [ ] Audit privileged risk-label extraction against the pinned simulator.
