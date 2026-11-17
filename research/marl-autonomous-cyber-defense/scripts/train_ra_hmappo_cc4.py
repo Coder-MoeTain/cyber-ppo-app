@@ -5,6 +5,7 @@ from dataclasses import asdict
 from pathlib import Path
 import torch
 import time
+from training_telemetry import TrainingTelemetry
 
 from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
 from autocd.algorithms.hierarchical_trainer import RAHMAPPOConfig, RiskAwareHierarchicalTrainer
@@ -27,6 +28,8 @@ def main():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--device", default="cpu")
     p.add_argument("--output", required=True)
+    p.add_argument("--progress-file")
+    p.add_argument("--rolling-checkpoint")
     args = p.parse_args()
     if args.steps < 1 or args.rollout_steps < 1 or args.episode_steps < 1:
         raise ValueError("step counts must be positive")
@@ -52,11 +55,22 @@ def main():
         )
         if str(args.device).startswith("cuda"):
             torch.cuda.synchronize(args.device)
+        telemetry = TrainingTelemetry(
+            args.progress_file,
+            args.rolling_checkpoint or str(args.output) + ".latest.pt",
+            trainer.model, trainer.optimizer, args.steps, args.device,
+            metadata={
+                "algorithm": "RA-HMAPPO",
+                "seed": args.seed, "episode_steps": args.episode_steps,
+                "rollout_steps": args.rollout_steps, "device": args.device,
+            },
+        )
         training_start = time.perf_counter()
-        history = trainer.train(args.steps, args.rollout_steps)
+        history = trainer.train(args.steps, args.rollout_steps, on_update=telemetry.on_update)
         if str(args.device).startswith("cuda"):
             torch.cuda.synchronize(args.device)
         training_wall_seconds = time.perf_counter() - training_start
+        telemetry.finish("completed", {"training_wall_seconds": training_wall_seconds})
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
         torch.save({
@@ -76,6 +90,7 @@ def main():
             "environment": "CAGE-Challenge-4",
             "cyborg_version": "4.0",
             "training_steps": args.steps,
+            "optimizer_state_dict": trainer.optimizer.state_dict(),
             "training_wall_seconds": training_wall_seconds,
             "training_steps_per_second": args.steps / max(training_wall_seconds, 1e-9),
         }, output)
