@@ -46,6 +46,7 @@ class TrainingTelemetry:
         self.metadata = dict(metadata or {})
         self.started = time.monotonic()
         self.latest = {}
+        self.update_count = 0
 
     def _append(self, record):
         if self.progress_file is None:
@@ -58,11 +59,13 @@ class TrainingTelemetry:
 
     def on_update(self, metrics):
         steps = int(metrics["environment_steps"])
+        self.update_count += 1
         elapsed = max(time.monotonic() - self.started, 1e-9)
         record = {
             "event": "training_update",
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             "environment_steps": steps,
+            "update_index": self.update_count,
             "total_steps": self.total_steps,
             "progress_percent": min(100.0, 100.0 * steps / self.total_steps),
             "elapsed_seconds": elapsed,
