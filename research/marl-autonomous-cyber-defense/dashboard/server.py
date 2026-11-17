@@ -29,6 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "dashboard"
 RUNS = ROOT / "artifacts" / "dashboard_runs"
 SCRIPTS = ROOT / "scripts"
+CC4_COMMIT = "8c3c50ca54b176c2de199847944e8dcc035497e3"
 TOKEN = os.environ.get("SENTINEL_DASHBOARD_TOKEN", "")
 if len(TOKEN) < 24:
     raise RuntimeError("Set SENTINEL_DASHBOARD_TOKEN to a random value of at least 24 characters")
@@ -117,6 +118,15 @@ def system(_: None = Depends(require_auth)):
                 "memory_reserved_bytes": int(torch.cuda.memory_reserved(index)),
             })
     cyborg_path = ROOT / "vendor" / "CybORG"
+    cyborg_commit = None
+    if cyborg_path.is_dir():
+        try:
+            cyborg_commit = subprocess.check_output(
+                ["git", "-C", str(cyborg_path), "rev-parse", "HEAD"],
+                text=True, stderr=subprocess.DEVNULL, timeout=3,
+            ).strip()
+        except (OSError, subprocess.SubprocessError):
+            pass
     return {
         "project_root": str(ROOT),
         "python": sys.version.split()[0],
@@ -125,6 +135,8 @@ def system(_: None = Depends(require_auth)):
         "cuda_version": torch.version.cuda,
         "devices": devices,
         "cyborg_source_present": cyborg_path.is_dir(),
+        "cyborg_commit": cyborg_commit,
+        "cyborg_revision_matches": cyborg_commit == CC4_COMMIT,
         "risk_checkpoint_default": str(ROOT / "artifacts" / "standard_cc4" / "cc4_risk.pt"),
         "disk_free_bytes": __import__("shutil").disk_usage(ROOT).free,
     }
@@ -145,6 +157,17 @@ def start_training(request: StartRequest, _: None = Depends(require_auth)):
         cyborg = ROOT / "vendor" / "CybORG"
         if not cyborg.is_dir():
             raise HTTPException(400, "Pinned CybORG source is missing. Follow the CC4 setup guide first.")
+        try:
+            actual_cyborg_commit = subprocess.check_output(
+                ["git", "-C", str(cyborg), "rev-parse", "HEAD"],
+                text=True, stderr=subprocess.DEVNULL, timeout=3,
+            ).strip()
+        except (OSError, subprocess.SubprocessError) as exc:
+            raise HTTPException(400, "Cannot verify the pinned CybORG source revision.") from exc
+        if actual_cyborg_commit != CC4_COMMIT:
+            raise HTTPException(
+                400, f"CybORG revision mismatch: expected {CC4_COMMIT}, got {actual_cyborg_commit}"
+            )
         device = request.device
         if device == "auto":
             device = "cuda:0" if torch.cuda.is_available() else "cpu"
