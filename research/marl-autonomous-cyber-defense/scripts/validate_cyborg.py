@@ -4,7 +4,7 @@ import json
 import numpy as np
 
 from autocd.envs.cyborg_adapter import CybORGAdapter
-from autocd.baselines.cc4_heuristic import CC4AlertGuidedPolicy
+from autocd.baselines.cc4_team_uc_heuristic import CC4TeamUCInspiredPolicy
 from autocd.envs.cc4_tasks import CC4TaskActionMapper
 
 
@@ -74,7 +74,7 @@ def main():
                 raise RuntimeError("Same-seed initial observations/action masks are not reproducible")
 
         if args.one_step:
-            policy = CC4AlertGuidedPolicy()
+            policy = CC4TeamUCInspiredPolicy()
             actions, selected_labels = {}, {}
             for agent in env.agents:
                 action = policy.act(env.env, agent, obs[agent], masks[agent])
