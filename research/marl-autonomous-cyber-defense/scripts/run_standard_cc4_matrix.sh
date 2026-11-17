@@ -30,7 +30,7 @@ for seed in "${TRAIN_SEEDS[@]}"; do
   "$PYTHON" scripts/train_ippo_cc4.py --steps "$STEPS" --rollout-steps "$ROLLOUT_STEPS" \
     --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --seed "$seed" --output "$OUT/ippo_seed${seed}.pt"
   "$PYTHON" scripts/train_mappo_cc4.py --steps "$STEPS" --rollout-steps "$ROLLOUT_STEPS" \
-    --episode-steps "$EPISODE_STEPS" --seed "$seed" --output "$OUT/mappo_seed${seed}.pt"
+    --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --seed "$seed" --output "$OUT/mappo_seed${seed}.pt"
 done
 
 "$PYTHON" scripts/evaluate_baseline_cc4.py --baseline heuristic \
@@ -49,4 +49,11 @@ for seed in "${TRAIN_SEEDS[@]}"; do
     --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --output "$RESULTS/mappo_seed${seed}.jsonl"
 done
 
-echo "Standard CC4 matrix complete. Run the preregistered statistical analysis before interpreting results."
+"$PYTHON" scripts/analyze_cc4_results.py \
+  --ra-glob "$RESULTS/ra_hmappo_seed*.jsonl" \
+  --ippo-glob "$RESULTS/ippo_seed*.jsonl" \
+  --mappo-glob "$RESULTS/mappo_seed*.jsonl" \
+  --heuristic-file "$RESULTS/heuristic.jsonl" \
+  --output "$RESULTS/paired_analysis.json"
+
+echo "Standard CC4 matrix and paired analysis complete. Review diagnostics before interpreting results."
