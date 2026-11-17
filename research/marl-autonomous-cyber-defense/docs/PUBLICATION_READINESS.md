@@ -23,8 +23,10 @@ been produced in this release.
 - [ ] Validate the Team UC-inspired implementation against the published
   policy details and report its missing malicious-file features.
 - [x] Official CAGE Challenge 4 source revision pinned in `configs/cc4.lock.yaml`.
-- [ ] Pass official upstream CC4 tests and live adapter reset/seed/step validation.
-- [ ] Audit privileged risk-label extraction against the pinned simulator.
+- [x] Real CC4 adapter reset, same-seed replay, action-mask and one-step smoke validation.
+- [x] Real CC4 offline risk-dataset collection smoke and RA-HMAPPO rollout/update smoke.
+- [ ] Pass the official upstream CC4 test suite.
+- [ ] Audit privileged risk-label semantics and held-out risk-model calibration.
 - [ ] Empirically validate task ontology and ablate alternative option mappings.
 - [ ] Validate reward aggregation and episode-boundary semantics on real CC4.
 - [ ] Complete matched-budget training and evaluation for heuristic, IPPO,
