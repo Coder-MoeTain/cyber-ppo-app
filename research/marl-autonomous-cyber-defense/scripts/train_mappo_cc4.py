@@ -41,6 +41,11 @@ def main():
                 "algorithm": "MAPPO",
                 "seed": args.seed, "episode_steps": args.episode_steps,
                 "rollout_steps": args.rollout_steps, "device": args.device,
+                "agents": list(trainer.agents),
+                "observation_dim": getattr(trainer, "obs_dim", None),
+                "action_dims": getattr(trainer, "action_dims", None),
+                "global_state_dim": getattr(trainer, "global_state_dim", None),
+                "config": asdict(config) if "config" in locals() else (asdict(cfg) if "cfg" in locals() else {}),
             },
         )
         training_start = time.perf_counter()
