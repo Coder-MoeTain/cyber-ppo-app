@@ -12,8 +12,7 @@ upgrade the simulator during an experiment series.
 1. Does RA-HMAPPO improve team utility and security/availability outcomes
    relative to a strong heuristic, Independent PPO and MAPPO?
 2. Does it generalize to held-out network sizes and host configurations?
-3. How does limited inter-agent communication affect performance and cost?
-4. Does risk conditioning improve prioritization without excessive
+3. Does risk conditioning improve prioritization without excessive
    containment or service disruption?
 
 ## Baselines
@@ -25,8 +24,9 @@ upgrade the simulator during an experiment series.
 - Proposed RA-HMAPPO with learned manager and worker policies.
 
 Match environment interactions, training scenario distributions, action masks,
-model-selection budget and evaluation seeds. Report compute and wall-clock
-budgets for every method.
+model-selection budget and evaluation seeds. All methods currently send the
+wrapper's default empty messages; this study does not evaluate learned
+inter-agent communication. Report compute and wall-clock budgets for every method.
 
 ## Scenario matrix
 
@@ -71,7 +71,6 @@ Secondary outcomes:
 - valid/invalid action rate;
 - detection, analysis, removal and restoration action counts and latency;
 - unnecessary containment/restoration and false-positive response cost;
-- communication bits/messages and coordination latency;
 - inference time, training time and model size.
 
 Separate training-only privileged labels from actor-visible inputs. If a
@@ -93,7 +92,6 @@ independent samples. Publish raw per-episode outcomes and analysis scripts.
 - Remove the learned manager (flat MAPPO).
 - Remove risk input.
 - Replace learned hierarchy with deterministic task allocation.
-- Disable inter-agent communication / vary bit budget.
 - Remove risk-aware reward shaping.
 - Replace action masks with unmasked policy only as a diagnostic, not as a
   deployable baseline.
