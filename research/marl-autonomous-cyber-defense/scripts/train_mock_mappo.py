@@ -1,23 +1,13 @@
-"""Run a deterministic *mock-only* MARL training smoke test."""
-import argparse
-import json
-from autocd.algorithms.trainer import TrainConfig, train_mock
-
-
+"""Short MAPPO smoke run on mock environment; not a CybORG benchmark."""
+import argparse,json,math
+from autocd.algorithms.mappo_trainer import MAPPOConfig,MAPPOTrainer
+from autocd.envs.mock_enterprise import MockEnterpriseEnv
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--episodes", type=int, default=20)
-    parser.add_argument("--seed", type=int, default=42)
-    args = parser.parse_args()
-    _, returns = train_mock(TrainConfig(episodes=args.episodes, seed=args.seed))
-    print(json.dumps({
-        "environment": "mock_enterprise_NOT_CybORG",
-        "episodes": len(returns),
-        "seed": args.seed,
-        "mean_episode_return": sum(returns) / len(returns),
-        "episode_returns": returns,
-    }, indent=2))
-
-
-if __name__ == "__main__":
-    main()
+ p=argparse.ArgumentParser();p.add_argument("--steps",type=int,default=256);p.add_argument("--rollout-steps",type=int,default=64);p.add_argument("--seed",type=int,default=42);a=p.parse_args()
+ trainer=MAPPOTrainer(MockEnterpriseEnv(seed=a.seed),MAPPOConfig(),seed=a.seed);history=trainer.train(a.steps,a.rollout_steps)
+ for row in history:
+  for k in ("actor_loss","critic_loss","entropy"):
+   if not math.isfinite(row[k]):raise RuntimeError("Non-finite metric: "+k)
+ print(json.dumps({"environment":"mock_only","algorithm":"MAPPO","seed":a.seed,"history":history},indent=2))
+ print("WARNING: mock smoke test only; not CybORG performance evidence.")
+if __name__=="__main__":main()
