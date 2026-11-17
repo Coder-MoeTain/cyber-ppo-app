@@ -69,6 +69,10 @@ def main():
             raise RuntimeError(f"Unknown checkpoint risk_mode: {risk_mode}")
         task_mapping = checkpoint.get("task_mapping", "semantic")
         task_mapper = CC4TaskActionMapper(env.env) if task_mapping == "semantic" else None
+        manager_mode = checkpoint.get("manager_mode", "learned")
+        risk_rule_threshold = float(checkpoint.get("risk_rule_threshold", 0.6))
+        if manager_mode not in {"learned", "risk_rule"}:
+            raise RuntimeError(f"Unknown checkpoint manager_mode: {manager_mode}")
 
         for seed in args.seeds:
             observations, infos = env.reset(seed=seed)
@@ -100,11 +104,20 @@ def main():
                         torch.cuda.synchronize(args.device)
                     inference_start = time.perf_counter()
                     with torch.no_grad():
-                        manager_dist = model.manager_distribution(
-                            agent, obs_tensor, risk_tensor, task_mask
-                        )
-                        task_tensor = manager_dist.probs.argmax(-1)
-                        task = int(task_tensor.item())
+                        if manager_mode == "risk_rule":
+                            preferred_task = 1 if risk >= risk_rule_threshold else 0
+                            available_tasks = torch.flatnonzero(task_mask)
+                            task = (
+                                preferred_task if bool(task_mask[preferred_task])
+                                else int(available_tasks[0].item())
+                            )
+                            task_tensor = torch.tensor([task], dtype=torch.long, device=args.device)
+                        else:
+                            manager_dist = model.manager_distribution(
+                                agent, obs_tensor, risk_tensor, task_mask
+                            )
+                            task_tensor = manager_dist.probs.argmax(-1)
+                            task = int(task_tensor.item())
                         worker_mask = torch.as_tensor(
                             task_action_masks[task], dtype=torch.bool, device=args.device
                         )
@@ -142,6 +155,7 @@ def main():
                 "training_seed": int(checkpoint["seed"]),
                 "risk_mode": checkpoint.get("risk_mode", "predicted"),
                 "task_mapping": checkpoint.get("task_mapping", "semantic"),
+                "manager_mode": manager_mode,
                 "reward_aggregation": checkpoint.get("reward_aggregation", "sum"),
                 "steps": steps,
                 "team_reward_sum": float(sum(totals.values())),
