@@ -73,6 +73,7 @@ done
   data/cc4_risk_calibration.npz data/cc4_risk_test.npz configs/cc4.lock.yaml \
   requirements-cc4-validation.txt pyproject.toml docs/EXPERIMENT_PROTOCOL.md \
   docs/MANUSCRIPT_DRAFT.md docs/NOVELTY_GAP_ANALYSIS.md docs/PUBLICATION_READINESS.md \
+  docs/HMARL_BASELINE.md scripts/run_hmarl_baseline.py \
   --output "$RESULTS/artifact_manifest.json"
 
 echo "Standard CC4 matrix and paired analysis complete. Review diagnostics before interpreting results."
