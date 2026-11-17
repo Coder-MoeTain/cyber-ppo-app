@@ -51,4 +51,4 @@ The standard policy matrix uses the same 100 episode seeds (501–600) for every
 
 ## Ablations and manuscript
 
-The current scripts implement the main standard-CC4 matrix; they do not yet implement every ablation listed in `EXPERIMENT_PROTOCOL.md`. Do not label planned ablations complete until each variant has explicit configuration, runner support, matched-budget runs, raw outputs, and analysis. The manuscript draft intentionally leaves Results and Conclusion pending actual evidence.
+The separate `scripts/run_cc4_ablations.sh` runner now implements matched-budget variants for constant-risk input, unconstrained task-to-action mapping, and mean team-reward aggregation. It requires the risk checkpoint from the standard matrix. Run it only after the primary risk-model split workflow has completed. These variants do not replace the remaining planned deterministic-manager and calibration-uncertainty ablations. Do not label ablations complete until matched-budget runs, raw outputs and analysis have been reviewed. The manuscript draft intentionally leaves Results and Conclusion pending actual evidence.
