@@ -10,6 +10,7 @@ on:
       - "research/marl-autonomous-cyber-defense/scripts/validate_cyborg.py"
       - "research/marl-autonomous-cyber-defense/tests/test_cyborg_adapter.py"
       - "research/marl-autonomous-cyber-defense/configs/cc4.lock.yaml"
+      - "research/marl-autonomous-cyber-defense/requirements-cc4-validation.txt"
       - ".github/workflows/cc4-integration-validation.yml"
 
 jobs:
