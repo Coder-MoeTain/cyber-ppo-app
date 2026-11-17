@@ -67,7 +67,7 @@ The current experiments use the wrapper's default empty inter-agent messages. Th
 
 ## 5. Experimental Design
 
-The pinned CC4 commit, software environment, training seeds, held-out evaluation seeds, episode horizon, hardware, and run configurations must be archived. The planned primary comparison includes RA-HMAPPO, IPPO, MAPPO, and the Team-UC-inspired heuristic. An alert-only heuristic may be reported as a secondary comparator.
+The pinned CC4 commit, software environment, training seeds, held-out evaluation seeds, episode horizon, hardware, and run configurations must be archived. The planned primary comparison includes RA-HMAPPO, IPPO, MAPPO, and the Team-UC-inspired heuristic; the alert-only heuristic is included as a secondary comparator. The main analysis script pairs both heuristic comparators on the same 100 held-out seeds.
 
 The target matrix is ten independent training seeds and 100 held-out evaluation episodes per trained checkpoint and scenario, with identical held-out episode seeds across methods. Scenario-shift experiments must use versioned configuration files and a split that is not used for hyperparameter selection.
 
