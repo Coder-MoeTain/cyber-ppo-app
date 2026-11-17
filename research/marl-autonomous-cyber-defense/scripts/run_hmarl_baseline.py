@@ -60,6 +60,7 @@ def run_one(evaluation, submission, variant_root, seed, output_dir):
             )
     finally:
         os.chdir(original_cwd)
+    (output_dir / "run.log").write_text(buffer.getvalue(), encoding="utf-8")
     match = re.search(
         r"Average reward is:\s*([-+0-9.eE]+)\s+with a standard deviation",
         buffer.getvalue(),
