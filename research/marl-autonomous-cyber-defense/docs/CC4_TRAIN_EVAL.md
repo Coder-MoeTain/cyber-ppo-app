@@ -32,3 +32,23 @@ using them as paper outcomes.
 
 The heuristic is an original simple alert-guided baseline, not an exact
 reproduction of a published competition agent. Report that limitation.
+
+
+## Full reproducible standard benchmark matrix
+
+After reviewing the configuration and reserving sufficient compute, run:
+
+```bash
+bash scripts/run_standard_cc4_matrix.sh
+```
+
+This orchestrates the risk dataset, risk model, ten training seeds for each
+of RA-HMAPPO/IPPO/MAPPO, the same 100 held-out evaluation seeds for all
+methods, the preliminary heuristic baseline, and the paired statistical
+report. It is a long-running workload (30 million policy environment steps
+across the three learned methods, plus evaluation); it is not part of CI and
+must be run on dedicated compute.
+
+The generated statistical report is preliminary. Review the independence
+assumptions and the limitations in its output before using p-values or
+confidence intervals in a manuscript.
