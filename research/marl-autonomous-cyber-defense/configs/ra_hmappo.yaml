@@ -14,13 +14,14 @@ hierarchy:
   manager: decentralized_risk_conditioned_task_policy
   worker: decentralized_risk_and_task_conditioned_action_policy
   critic: centralized_global_state_value
-  num_tasks: 5
+  num_tasks: 6
   task_ontology:
     - monitor
     - investigate
-    - assess_risk
-    - contain
+    - remediate
     - recover
+    - isolate
+    - deceive
   risk_input:
     range: [0.0, 1.0]
     source: offline_supervised_local_observation_model
