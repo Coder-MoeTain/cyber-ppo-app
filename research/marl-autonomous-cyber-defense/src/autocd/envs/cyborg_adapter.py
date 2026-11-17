@@ -77,7 +77,8 @@ class CybORGAdapter:
     def reset(self, seed: int | None = None):
         if self._closed:
             raise RuntimeError("Environment is closed")
-        obs, info = self.env.reset()
+        effective_seed = self.seed if seed is None else seed
+        obs, info = self.env.reset(seed=effective_seed) if effective_seed is not None else self.env.reset()
         self.agents = self.possible_agents.copy()
         for agent in self.agents:
             self.action_dims[agent] = int(self.env.action_space(agent).n)
@@ -103,10 +104,8 @@ class CybORGAdapter:
                 for a in self.agents}
         vectors = self._observations(obs)
         result_infos = {a: dict(infos.get(a, {})) for a in self.agents}
-        for a in self.agents:
-            result_infos.setdefault(a, {})["action_mask"] = np.asarray(
-                self.env.action_mask(a), dtype=bool
-            )
+        for a, mask in self.action_masks().items():
+            result_infos.setdefault(a, {})["action_mask"] = mask
         if all(done.values()):
             self.agents = []
         return (
