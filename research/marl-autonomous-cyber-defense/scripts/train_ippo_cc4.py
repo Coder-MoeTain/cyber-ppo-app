@@ -26,8 +26,12 @@ def main():
     try:
         cfg = IPPOConfig()
         trainer = IndependentPPOTrainer(env, cfg, seed=args.seed, device=args.device)
+        if str(args.device).startswith("cuda"):
+            torch.cuda.synchronize(args.device)
         training_start = time.perf_counter()
         history = trainer.train(args.steps, args.rollout_steps)
+        if str(args.device).startswith("cuda"):
+            torch.cuda.synchronize(args.device)
         training_wall_seconds = time.perf_counter() - training_start
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
