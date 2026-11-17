@@ -34,6 +34,7 @@ simulator step. See `requirements-cc4-validation.txt`.
 - `scripts/train_ippo_cc4.py`: train the Independent PPO baseline.
 - `scripts/train_mappo_cc4.py`: train the CTDE MAPPO baseline.
 - `scripts/run_standard_cc4_matrix.sh`: reproducible multi-seed standard-CC4 experiment matrix.
+- `scripts/analyze_cc4_results.py`: paired seed-level comparisons, bootstrap intervals and Holm correction.
 - `scripts/evaluate_ra_hmappo_cc4.py` and
   `scripts/evaluate_baseline_cc4.py`: evaluate on held-out seeds and write
   episode-level JSONL records.
