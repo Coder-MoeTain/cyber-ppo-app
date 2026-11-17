@@ -42,7 +42,7 @@ run_variant() {
     "$PYTHON" scripts/evaluate_ra_hmappo_cc4.py \
       --checkpoint "$OUT/${variant}_seed${seed}.pt" "${eval_risk_args[@]}" \
       --seeds "${EVAL_SEEDS[@]}" --episode-steps "$EPISODE_STEPS" \
-      --device "$DEVICE" --output "$RESULTS/${variant}_seed${seed}.jsonl"
+      --device "$DEVICE" --profile-inference --output "$RESULTS/${variant}_seed${seed}.jsonl"
   done
 }
 
