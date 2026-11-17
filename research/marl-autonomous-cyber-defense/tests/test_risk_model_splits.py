@@ -67,3 +67,26 @@ def test_dataset_loader_checks_seed_provenance_and_binary_labels(tmp_path):
     _dataset(invalid, [10, 11], labels=[0, 1, 2, 1])
     with pytest.raises(ValueError, match="binary"):
         RISK_TRAIN.load_dataset(invalid)
+
+
+def test_episode_cluster_bootstrap_reports_episode_level_intervals():
+    labels = np.asarray([0, 1, 0, 1, 0, 1, 0, 1])
+    probs = np.asarray([0.1, 0.9, 0.2, 0.8, 0.3, 0.7, 0.4, 0.6])
+    episodes = np.asarray([10, 10, 11, 11, 12, 12, 13, 13])
+    first = RISK_TRAIN.episode_cluster_bootstrap(
+        labels, probs, episodes, n_boot=200, seed=9
+    )
+    second = RISK_TRAIN.episode_cluster_bootstrap(
+        labels, probs, episodes, n_boot=200, seed=9
+    )
+    assert first == second
+    assert first["unit"] == "episode"
+    assert first["episodes"] == 4
+    assert set(first["intervals"]) == {"auroc", "auprc", "brier", "ece"}
+
+
+def test_episode_cluster_bootstrap_rejects_single_episode():
+    with pytest.raises(ValueError, match="two independent episodes"):
+        RISK_TRAIN.episode_cluster_bootstrap(
+            [0, 1], [0.1, 0.9], [7, 7], n_boot=200
+        )
