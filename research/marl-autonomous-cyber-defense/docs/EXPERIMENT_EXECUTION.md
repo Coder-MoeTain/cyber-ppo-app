@@ -6,6 +6,12 @@ This guide separates ordinary CI validation from long-running benchmark work. It
 
 The standard matrix defaults to 10 independent training seeds, 1,000,000 environment steps per seed for each of RA-HMAPPO, IPPO, and MAPPO, and 100 held-out evaluation seeds. This is a substantial workload (30 million learned-policy training interactions plus risk-data collection and evaluation). Do not run it on a short-lived unit-test runner. Reserve a persistent machine with the pinned CC4 dependencies and sufficient disk for checkpoints and episode records.
 
+## GPU web dashboard
+
+For interactive single-seed model training, install `dashboard/requirements-server.txt` and follow `dashboard/README.md`. Start `bash dashboard/start_dashboard.sh` on the GPU host; the service binds to `127.0.0.1:8787` and creates a private bearer token. Connect from a workstation through `ssh -L 8787:127.0.0.1:8787 user@host`. The console launches RA-HMAPPO, MAPPO or IPPO, streams progress after each PPO update, reports GPU memory and losses, and writes an atomic rolling checkpoint after every update. It enforces the exact CC4 commit in `configs/cc4.lock.yaml`.
+
+The dashboard currently launches one policy-training run at a time. Use the matrix script below for the full 10-seed baseline/evaluation protocol; the dashboard does not replace the preregistered matrix.
+
 ## Reproducible invocation
 
 From this directory, after installing the pinned CC4 validation dependencies and the research package:
