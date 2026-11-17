@@ -17,8 +17,9 @@ upgrade the simulator during an experiment series.
 
 ## Baselines
 
-- Strong mask-aware rule-based heuristic; document it as a reimplementation
-  unless original competition source is available.
+- Current transparent alert-guided heuristic is a preliminary baseline only.
+  Implement and validate a stronger CC4 heuristic against the published challenge
+  analysis before treating the heuristic comparison as sufficient.
 - Independent PPO with decentralized actor/critic per agent.
 - MAPPO with decentralized actors and centralized critic.
 - Proposed RA-HMAPPO with learned manager and worker policies.
