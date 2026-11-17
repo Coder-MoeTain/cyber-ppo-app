@@ -47,3 +47,27 @@ def test_seeded_episode_resets_are_deterministic():
     b = RiskAwareHierarchicalTrainer(env_b, mock_risk, seed=7)
     ra, rb = a.collect_rollout(5), b.collect_rollout(5)
     assert ra["rewards"] == rb["rewards"]
+
+
+
+def test_trainer_enforces_task_specific_action_masks():
+    def mapper(agent, observation, info, base_mask):
+        result = np.zeros((6, len(base_mask)), dtype=bool)
+        result[0, 0] = bool(base_mask[0])
+        result[1, 2] = bool(base_mask[2])
+        return result
+
+    env = MockEnterpriseEnv(n_hosts=5, episode_length=4, seed=12)
+    trainer = RiskAwareHierarchicalTrainer(
+        env, mock_risk,
+        RAHMAPPOConfig(update_epochs=1, minibatch_size=4, hidden_dim=32),
+        seed=12, task_action_mapper=mapper,
+    )
+    rollout = trainer.collect_rollout(4)
+    for t, row in enumerate(rollout["tasks"]):
+        for agent, task in row.items():
+            action = rollout["actions"][t][agent]
+            assert task in (0, 1)
+            assert action == (0 if task == 0 else 2)
+    metrics = trainer.update(rollout)
+    assert np.isfinite(metrics["actor_loss"])
