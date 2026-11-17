@@ -13,7 +13,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--steps", type=int, default=1000000)
     p.add_argument("--rollout-steps", type=int, default=256)
-    p.add_argument("--episode-steps", type=int, default=100)
+    p.add_argument("--episode-steps", type=int, default=500)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--device", default="cpu")
     p.add_argument("--output", required=True)
