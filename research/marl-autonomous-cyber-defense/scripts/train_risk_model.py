@@ -1,6 +1,7 @@
 """Train and calibrate the CC4 local-observation risk estimator."""
 import argparse
 import json
+from pathlib import Path
 import numpy as np
 import torch
 from torch import nn
@@ -18,8 +19,9 @@ def main():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--device", default="cpu")
     args = p.parse_args()
+    if args.epochs < 1 or args.batch_size < 1:
+        raise ValueError("epochs and batch-size must be positive")
     torch.manual_seed(args.seed)
-    rng = np.random.default_rng(args.seed)
 
     train = np.load(args.train_data, allow_pickle=False)
     val = np.load(args.validation_data, allow_pickle=False)
@@ -28,6 +30,19 @@ def main():
         raise ValueError("Train and validation agent order mismatch")
     if set(train["episode_ids"].tolist()) & set(val["episode_ids"].tolist()):
         raise ValueError("Train and validation episode seeds overlap")
+
+    if train["observations"].ndim != 2 or val["observations"].ndim != 2:
+        raise ValueError("observations must be 2-D arrays")
+    if train["observations"].shape[1] != val["observations"].shape[1]:
+        raise ValueError("Train and validation observation dimensions differ")
+    if len(val["labels"]) == 0 or len(train["labels"]) == 0:
+        raise ValueError("Train and validation datasets must be non-empty")
+    if not np.isfinite(train["observations"]).all() or not np.isfinite(val["observations"]).all():
+        raise ValueError("Observations contain NaN or infinity")
+    if np.any((train["agent_ids"] < 0) | (train["agent_ids"] >= len(names))) or np.any(
+        (val["agent_ids"] < 0) | (val["agent_ids"] >= len(names))
+    ):
+        raise ValueError("agent_ids outside configured agent range")
 
     X = torch.tensor(train["observations"], dtype=torch.float32, device=args.device)
     A = torch.tensor(train["agent_ids"], dtype=torch.long, device=args.device)
@@ -90,6 +105,7 @@ def main():
         "validation_episode_ids": val["episode_ids"].tolist(),
         "seed": args.seed,
     }
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     torch.save(checkpoint, args.output)
     print(json.dumps({"output": args.output, "temperature": temperature,
                       "best_validation_bce": best_loss, "metrics": metrics}, indent=2))
