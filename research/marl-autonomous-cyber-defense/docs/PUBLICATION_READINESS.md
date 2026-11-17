@@ -1,28 +1,44 @@
 # Publication readiness gates
 
-**Current classification: NOT publication ready.** Mock returns and policy
-architecture tests are not benchmark evidence.
+**Current classification: NOT publication ready.** Software implementation is
+advancing, but no full CC4 training/evaluation results or paper evidence have
+been produced in this release.
 
 ## Software and method
-- [x] Five-agent CC4 adapter boundary and action-mask interface.
-- [x] CTDE MAPPO trainer and paired statistical utilities.
-- [x] Risk-conditioned manager/worker policy architecture; unit-tested.
-- [ ] Integrate manager and worker decisions into a hierarchical rollout buffer.
-- [ ] Implement and test joint or separately weighted clipped PPO objectives.
-- [ ] Define task ontology and safe mapping from high-level tasks to CC4 actions.
-- [ ] Pin verified CybORG/CAGE commit and lock dependencies.
-- [ ] Validate reset, terminal/truncation, masks, dimensions and seeding on live CC4.
-- [ ] Implement Independent PPO and verify all baselines on the real simulator.
-- [ ] Validate reward semantics and report per-agent and team outcomes.
+
+- [x] Five-agent CC4 adapter boundary with action-mask support.
+- [x] CTDE MAPPO trainer and statistical utilities; mock-tested.
+- [x] Risk-conditioned hierarchical manager/worker policy architecture.
+- [x] RA-HMAPPO clipped-PPO trainer with separate manager/worker log-probabilities;
+  mock training tests added.
+- [x] Independent PPO baseline with decentralized critics; mock tests added.
+- [x] Offline-supervised risk-estimation pipeline with held-out calibration
+  metrics; data collection uses simulator ground truth only for labels.
+- [x] Basic alert-guided, action-mask-aware heuristic baseline; not an exact
+  reproduction of a published competition submission.
+- [x] Official CAGE Challenge 4 source revision pinned in `configs/cc4.lock.yaml`.
+- [ ] Pass official upstream CC4 tests and live adapter reset/seed/step validation.
+- [ ] Audit privileged risk-label extraction against the pinned simulator.
+- [ ] Verify task ontology and operational mapping to CC4 actions.
+- [ ] Validate reward aggregation and episode-boundary semantics on real CC4.
+- [ ] Complete matched-budget training and evaluation for heuristic, IPPO,
+  MAPPO and RA-HMAPPO.
 
 ## Experimental and manuscript
-- [ ] Freeze hypotheses, primary endpoints and disjoint scenario splits.
-- [ ] Run >=10 independent seeds where feasible and disclose deviations.
-- [ ] Report attack success, critical-asset compromise, service availability,
-  detection/mitigation latency, unnecessary defensive actions and overhead.
-- [ ] Run risk, hierarchy, communication and reward ablations.
-- [ ] Archive raw episode results, configs, checkpoints and environment provenance.
-- [ ] Complete novelty review, manuscript, verified citations, artifact license
-  and clean-machine reproduction.
 
-Never present mock-environment results as CybORG results.
+- [ ] Freeze hypotheses, primary endpoints and disjoint scenario seed/config splits.
+- [ ] Train risk model on training seeds and report held-out calibration,
+  AUROC/AUPRC, Brier score and ECE.
+- [ ] Run at least 10 independent training seeds where feasible.
+- [ ] Evaluate at least 100 episodes per method and scenario where feasible,
+  including standard CC4 and predeclared generalization shifts.
+- [ ] Report team/per-agent reward, red-session outcomes, availability,
+  invalid-action rate, unnecessary intervention, latency and overhead.
+- [ ] Run risk, hierarchy, communication and reward ablations.
+- [ ] Archive raw episode records, configs, checkpoints, source provenance,
+  statistical scripts and environment logs.
+- [ ] Complete current novelty review, manuscript, verified citations,
+  artifact license and clean-machine reproduction.
+
+Do not present mock-environment returns as CybORG results. A passing simulator
+smoke test is not a benchmark experiment and is not evidence of superiority.
