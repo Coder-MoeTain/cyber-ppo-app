@@ -41,7 +41,7 @@ for seed in "${TRAIN_SEEDS[@]}"; do
 done
 
 "$PYTHON" scripts/evaluate_baseline_cc4.py --baseline heuristic \
-  --seeds "${EVAL_SEEDS[@]}" --episode-steps "$EPISODE_STEPS" --device "$DEVICE" \
+  --seeds "${EVAL_SEEDS[@]}" --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --profile-inference \
   --output "$RESULTS/heuristic.jsonl"
 
 for seed in "${TRAIN_SEEDS[@]}"; do
