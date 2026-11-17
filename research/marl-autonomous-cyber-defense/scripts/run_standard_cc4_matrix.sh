@@ -63,4 +63,9 @@ done
   --heuristic-file "$RESULTS/heuristic.jsonl" \
   --output "$RESULTS/paired_analysis.json"
 
+"$PYTHON" scripts/artifact_manifest.py create \
+  --paths "$OUT" "$RESULTS" data/cc4_risk_train.npz data/cc4_risk_validation.npz \
+  data/cc4_risk_calibration.npz data/cc4_risk_test.npz \
+  --output "$RESULTS/artifact_manifest.json"
+
 echo "Standard CC4 matrix and paired analysis complete. Review diagnostics before interpreting results."
