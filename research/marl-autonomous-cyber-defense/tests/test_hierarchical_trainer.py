@@ -71,3 +71,33 @@ def test_trainer_enforces_task_specific_action_masks():
             assert action == (0 if task == 0 else 2)
     metrics = trainer.update(rollout)
     assert np.isfinite(metrics["actor_loss"])
+
+
+def test_risk_rule_manager_uses_threshold_and_freezes_manager_parameters():
+    env = MockEnterpriseEnv(n_hosts=5, episode_length=4, seed=21)
+    trainer = RiskAwareHierarchicalTrainer(
+        env, lambda *_: 0.9,
+        RAHMAPPOConfig(update_epochs=1, minibatch_size=4, hidden_dim=32),
+        seed=21, manager_mode="risk_rule", risk_rule_threshold=0.6,
+    )
+    before = {
+        key: value.detach().clone()
+        for key, value in trainer.model.managers["blue_agent_0"].state_dict().items()
+    }
+    rollout = trainer.collect_rollout(4)
+    assert all(row["blue_agent_0"] == 1 for row in rollout["tasks"])
+    metrics = trainer.update(rollout)
+    after = trainer.model.managers["blue_agent_0"].state_dict()
+    assert all(torch.equal(before[key], after[key]) for key in before)
+    assert metrics["manager_entropy"] == pytest.approx(0.0)
+
+
+def test_risk_rule_manager_uses_monitor_task_for_low_risk():
+    env = MockEnterpriseEnv(n_hosts=5, episode_length=4, seed=22)
+    trainer = RiskAwareHierarchicalTrainer(
+        env, lambda *_: 0.1,
+        RAHMAPPOConfig(update_epochs=1, minibatch_size=4, hidden_dim=32),
+        seed=22, manager_mode="risk_rule",
+    )
+    rollout = trainer.collect_rollout(4)
+    assert all(row["blue_agent_0"] == 0 for row in rollout["tasks"])
