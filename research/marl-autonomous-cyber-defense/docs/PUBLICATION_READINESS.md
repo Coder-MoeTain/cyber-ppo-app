@@ -28,6 +28,7 @@ been produced in this release.
 - [x] SHA-256 artifact manifest creation and verification utility added and wired into both benchmark runners.
 - [x] Matched-budget ablation runner and paired analysis added for risk removal,
   deterministic risk-rule manager, semantic task-mask removal and sum-versus-mean reward aggregation.
+- [x] Standard benchmark matrix includes Team-UC-inspired and alert-only heuristic baselines.
 - [x] Team UC-inspired stateful, action-mask-aware heuristic and simple
   alert-only comparator; neither is an exact competition-source reproduction.
 - [ ] Validate the Team UC-inspired implementation against published policy
