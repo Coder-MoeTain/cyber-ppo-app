@@ -10,9 +10,11 @@ python scripts/train_risk_model.py --train-data data/risk_train.npz --validation
 
 python scripts/train_ra_hmappo_cc4.py --risk-checkpoint artifacts/cc4_risk.pt --steps 1000000 --rollout-steps 256 --seed 42 --output artifacts/ra_hmappo_seed42.pt
 python scripts/train_ippo_cc4.py --steps 1000000 --rollout-steps 256 --seed 42 --output artifacts/ippo_seed42.pt
+python scripts/train_mappo_cc4.py --steps 1000000 --rollout-steps 256 --seed 42 --output artifacts/mappo_seed42.pt
 
 python scripts/evaluate_ra_hmappo_cc4.py --checkpoint artifacts/ra_hmappo_seed42.pt --risk-checkpoint artifacts/cc4_risk.pt --seeds 501 502 503 504 505 506 507 508 509 510 --output results/ra_hmappo_seed42.jsonl
 python scripts/evaluate_baseline_cc4.py --baseline ippo --checkpoint artifacts/ippo_seed42.pt --seeds 501 502 503 504 505 506 507 508 509 510 --output results/ippo_seed42.jsonl
+python scripts/evaluate_baseline_cc4.py --baseline mappo --checkpoint artifacts/mappo_seed42.pt --seeds 501 502 503 504 505 506 507 508 509 510 --output results/mappo_seed42.jsonl
 python scripts/evaluate_baseline_cc4.py --baseline heuristic --seeds 501 502 503 504 505 506 507 508 509 510 --output results/heuristic.jsonl
 ```
 
