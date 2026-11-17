@@ -1,10 +1,10 @@
 project:
   name: risk-aware-hierarchical-marl-cyber-defense
-  version: 0.3.0
+  version: 0.5.0
   benchmark: CAGE-Challenge-4
   environment: CybORG
   seed: 42
-  cyborg_commit: REQUIRED_BEFORE_EXPERIMENTS
+  cyborg_commit: 8c3c50ca54b176c2de199847944e8dcc035497e3
 agents:
   names: [blue_agent_0, blue_agent_1, blue_agent_2, blue_agent_3, blue_agent_4]
   observation_wrapper: BlueFlatWrapper
@@ -25,6 +25,7 @@ algorithm:
   max_grad_norm: 0.5
 experiment:
   total_environment_steps: 1000000
+  episode_steps: 500
   evaluation_seeds: [101, 202, 303, 404, 505, 606, 707, 808, 909, 1001]
   evaluation_episodes_per_seed: 10
   publication_evaluation_enabled: false
