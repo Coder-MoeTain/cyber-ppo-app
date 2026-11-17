@@ -47,8 +47,12 @@ def main():
             env, risk_fn, config, seed=args.seed, device=args.device,
             reward_aggregation=args.reward_aggregation, task_action_mapper=task_mapper,
         )
+        if str(args.device).startswith("cuda"):
+            torch.cuda.synchronize(args.device)
         training_start = time.perf_counter()
         history = trainer.train(args.steps, args.rollout_steps)
+        if str(args.device).startswith("cuda"):
+            torch.cuda.synchronize(args.device)
         training_wall_seconds = time.perf_counter() - training_start
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
