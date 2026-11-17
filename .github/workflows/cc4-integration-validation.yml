@@ -17,6 +17,8 @@ jobs:
   cc4-live-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    env:
+      PYTHONPATH: ${{ github.workspace }}/research/marl-autonomous-cyber-defense/vendor/CybORG
     defaults:
       run:
         working-directory: research/marl-autonomous-cyber-defense
