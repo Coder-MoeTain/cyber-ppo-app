@@ -4,6 +4,7 @@ import json
 import numpy as np
 
 from autocd.envs.cyborg_adapter import CybORGAdapter
+from autocd.baselines.cc4_heuristic import CC4AlertGuidedPolicy
 
 
 def _snapshot(seed):
@@ -63,16 +64,17 @@ def main():
                 raise RuntimeError("Same-seed initial observations/action masks are not reproducible")
 
         if args.one_step:
-            actions = {}
+            policy = CC4AlertGuidedPolicy()
+            actions, selected_labels = {}, {}
             for agent in env.agents:
-                labels = env.env.action_labels(agent)
-                sleep = next((i for i, label in enumerate(labels)
-                              if str(label).lower() == "sleep"), None)
-                if sleep is None or not masks[agent][sleep]:
-                    raise RuntimeError(f"No valid Sleep action for {agent}")
-                actions[agent] = int(sleep)
+                action = policy.act(env.env, agent, obs[agent], masks[agent])
+                if not masks[agent][action]:
+                    raise RuntimeError(f"Heuristic selected a masked action for {agent}")
+                actions[agent] = int(action)
+                selected_labels[agent] = env.env.action_labels(agent)[action]
             _, rewards, terminated, truncated, _ = env.step(actions)
             report["one_step"] = {
+                "selected_actions": selected_labels,
                 "reward_agents": sorted(rewards),
                 "terminated": terminated,
                 "truncated": truncated,
