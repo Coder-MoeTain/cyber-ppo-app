@@ -20,6 +20,8 @@ def load_dataset(path, agent_names=None, observation_dim=None):
         raise ValueError(f"Observation dimension mismatch in {path}")
     if len(data["labels"]) == 0 or len(data["labels"]) != len(data["observations"]):
         raise ValueError(f"Labels in {path} are empty or misaligned")
+    if len(data["agent_ids"]) != len(data["labels"]) or len(data["episode_ids"]) != len(data["labels"]):
+        raise ValueError(f"Agent IDs or episode IDs in {path} are misaligned")
     if not np.isfinite(data["observations"]).all():
         raise ValueError(f"Observations in {path} contain NaN or infinity")
     if not np.isin(data["labels"], [0, 1]).all():
@@ -28,7 +30,7 @@ def load_dataset(path, agent_names=None, observation_dim=None):
         raise ValueError(f"agent_ids outside configured range in {path}")
     seeds = set(map(int, data["seeds"].tolist()))
     episode_ids = set(map(int, data["episode_ids"].tolist()))
-    if not seeds or not episode_ids or not episode_ids.issubset(seeds):
+    if not seeds or not episode_ids or episode_ids != seeds:
         raise ValueError(f"Missing or inconsistent seed provenance in {path}")
     return data, names, seeds
 
