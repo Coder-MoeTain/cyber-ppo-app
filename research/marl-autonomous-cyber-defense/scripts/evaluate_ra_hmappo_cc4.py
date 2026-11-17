@@ -110,6 +110,7 @@ def main():
             }
             records.append({
                 "seed": int(seed),
+                "training_seed": int(checkpoint["seed"]),
                 "steps": steps,
                 "team_reward_sum": float(sum(totals.values())),
                 "team_reward_mean_per_agent": float(np.mean(list(totals.values()))),
