@@ -1,5 +1,9 @@
 name: MARL research scaffold checks
 
+concurrency:
+  group: marl-research-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
