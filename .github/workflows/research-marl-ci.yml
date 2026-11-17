@@ -44,5 +44,7 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
       - name: Compile source, scripts and tests
         run: python -m compileall -q src scripts tests
+      - name: Validate experiment shell scripts
+        run: bash -n scripts/run_standard_cc4_matrix.sh scripts/run_cc4_ablations.sh
       - name: Run unit and regression tests
         run: python -m pytest -q
