@@ -9,6 +9,7 @@ been produced in this release.
 - [x] Five-agent CC4 adapter boundary with action-mask support.
 - [x] CTDE MAPPO trainer and statistical utilities; mock-tested.
 - [x] CC4 training/evaluation runners for MAPPO, IPPO and RA-HMAPPO plus a standard multi-seed matrix script.
+- [x] Paired multi-seed analysis report generator with two-level bootstrap intervals and Holm correction.
 - [x] Risk-conditioned hierarchical manager/worker policy architecture.
 - [x] RA-HMAPPO clipped-PPO trainer with separate manager/worker log-probabilities;
   mock training tests added.
