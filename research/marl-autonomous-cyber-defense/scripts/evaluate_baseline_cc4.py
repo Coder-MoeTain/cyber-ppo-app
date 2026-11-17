@@ -28,7 +28,7 @@ def main():
     p.add_argument("--baseline", choices=["ippo", "heuristic"], required=True)
     p.add_argument("--checkpoint")
     p.add_argument("--seeds", type=int, nargs="+", required=True)
-    p.add_argument("--episode-steps", type=int, default=100)
+    p.add_argument("--episode-steps", type=int, default=500)
     p.add_argument("--device", default="cpu")
     p.add_argument("--output", required=True)
     args = p.parse_args()
