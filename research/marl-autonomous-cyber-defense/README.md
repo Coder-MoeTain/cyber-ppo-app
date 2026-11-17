@@ -1,22 +1,43 @@
 # Risk-Aware Hierarchical Multi-Agent Reinforcement Learning for Coordinated Autonomous Cyber Defense
 
-Research package for CAGE Challenge 4 / CybORG enterprise cyber defence.
-Includes a mock environment, CTDE MAPPO scaffold, CybORG adapter boundary,
-statistical utilities and risk-conditioned hierarchical manager/worker policy.
+Research implementation for the CAGE Challenge 4 (CC4) enterprise cyber-defence
+benchmark. The package includes CTDE MAPPO, Independent PPO, a risk-conditioned
+hierarchical policy and PPO trainer, an offline-supervised risk estimator
+pipeline, a simple alert-guided heuristic, statistical utilities and a
+professional static dashboard prototype.
 
 ## Quick start
-Install development dependencies with pip install -e ".[dev]", then run
-pytest -q. For a software smoke test run:
+
+```bash
+python -m pip install -e ".[dev]"
+pytest -q
 PYTHONPATH=src python scripts/train_mock_mappo.py --steps 256 --rollout-steps 64 --seed 42
+```
 
-The mock training command is not a CybORG benchmark and is not scientific
-evidence for a paper.
+These mock tests validate software interfaces only. They are not CC4
+benchmark results.
 
-## Status
-- MAPPO trainer: implemented; mock-tested.
-- Hierarchical manager/worker networks: implemented and unit-tested; not yet
-  integrated into a PPO rollout/update loop.
-- CybORG adapter: integration boundary implemented; live simulator validation pending.
-- Dashboard: static frontend prototype with illustrative values only.
+## Pinned CC4 integration
 
-See docs/PUBLICATION_READINESS.md for remaining research and reproducibility gates.
+The official simulator source is pinned to the exact commit in
+`configs/cc4.lock.yaml`. The live integration workflow checks the official
+upstream CC4 tests, adapter reset, action masks, same-seed replay and a real
+simulator step. See `requirements-cc4-validation.txt`.
+
+## Research workflows
+
+- `scripts/collect_cc4_risk_dataset.py`: collect local observations and
+  offline red-session labels on designated training seeds.
+- `scripts/train_risk_model.py`: train and calibrate the local risk estimator
+  on disjoint training/validation datasets.
+- `scripts/train_ra_hmappo_cc4.py`: train RA-HMAPPO on the pinned simulator.
+- `scripts/train_ippo_cc4.py`: train the Independent PPO baseline.
+- `scripts/evaluate_ra_hmappo_cc4.py` and
+  `scripts/evaluate_baseline_cc4.py`: evaluate on held-out seeds and write
+  episode-level JSONL records.
+
+The alert-guided heuristic is a transparent baseline, not an exact reproduction
+of a published CC4 competition agent. The dashboard is a static frontend with
+illustrative values and is not connected to live experiment telemetry.
+
+See `docs/PUBLICATION_READINESS.md` before making any publication claims.
