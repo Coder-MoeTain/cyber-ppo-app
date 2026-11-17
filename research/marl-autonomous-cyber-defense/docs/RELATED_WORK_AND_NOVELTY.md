@@ -37,8 +37,8 @@ A defensible candidate contribution to test is:
    execution and centralized training.
 2. Explicit handling of randomized topology and invalid actions through
    observation-aware action masking and topology-generalization evaluation.
-3. A measured coordination/communication budget trade-off under CC4's
-   restricted inter-agent communication.
+3. A measured security/availability/intervention-cost trade-off under
+   risk-conditioned defensive prioritization.
 4. Robustness analysis across adversary and environment shifts, not only
    average reward on the default scenario.
 
@@ -52,9 +52,7 @@ show statistically and practically meaningful gains over strong baselines.
   Independent PPO, and MAPPO on the standard CC4 distribution?
 - RQ2: Does the method generalize better to held-out network sizes and host
   configurations than the baselines?
-- RQ3: How does constrained communication affect coordination quality,
-  performance, and communication overhead?
-- RQ4: Does risk conditioning improve response prioritization without causing
+- RQ3: Does risk conditioning improve response prioritization without causing
   excessive containment, service disruption, or false-positive interventions?
 
 ## Minimum baseline and evaluation discipline
