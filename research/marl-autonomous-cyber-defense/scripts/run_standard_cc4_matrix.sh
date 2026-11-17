@@ -28,7 +28,7 @@ mkdir -p "$OUT" "$RESULTS" data
 "$PYTHON" scripts/train_risk_model.py --train-data data/cc4_risk_train.npz \
   --validation-data data/cc4_risk_validation.npz \
   --calibration-data data/cc4_risk_calibration.npz \
-  --test-data data/cc4_risk_test.npz --device "$DEVICE" --profile-inference --output "$OUT/cc4_risk.pt"
+  --test-data data/cc4_risk_test.npz --device "$DEVICE" --output "$OUT/cc4_risk.pt"
 
 for seed in "${TRAIN_SEEDS[@]}"; do
   "$PYTHON" scripts/train_ra_hmappo_cc4.py --risk-checkpoint "$OUT/cc4_risk.pt" \
