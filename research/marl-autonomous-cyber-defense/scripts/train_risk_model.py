@@ -63,6 +63,42 @@ def probabilities(logits, temperature):
     return 1.0 / (1.0 + np.exp(-np.clip(z, -60.0, 60.0)))
 
 
+def episode_cluster_bootstrap(labels, probs, episode_ids, *, n_boot=1000, seed=1234):
+    """Percentile intervals resampling whole episodes, never individual timesteps."""
+    y = np.asarray(labels, dtype=np.int64).reshape(-1)
+    p = np.asarray(probs, dtype=np.float64).reshape(-1)
+    groups = np.asarray(episode_ids).reshape(-1)
+    if y.size == 0 or y.size != p.size or y.size != groups.size:
+        raise ValueError("labels, probabilities and episode_ids must be non-empty and aligned")
+    if n_boot < 100:
+        raise ValueError("n_boot must be at least 100")
+    unique = np.unique(groups)
+    if unique.size < 2:
+        raise ValueError("at least two independent episodes are required for cluster bootstrap")
+    indices = [np.flatnonzero(groups == episode) for episode in unique]
+    rng = np.random.default_rng(seed)
+    samples = {key: [] for key in ("auroc", "auprc", "brier", "ece")}
+    for _ in range(n_boot):
+        selected = rng.integers(0, len(indices), size=len(indices))
+        row_idx = np.concatenate([indices[i] for i in selected])
+        if np.unique(y[row_idx]).size < 2:
+            continue
+        metrics = binary_metrics(y[row_idx], p[row_idx])
+        for key in samples:
+            value = float(metrics[key])
+            if np.isfinite(value):
+                samples[key].append(value)
+    intervals = {}
+    for key, values in samples.items():
+        if len(values) < max(50, n_boot // 2):
+            raise ValueError(f"Insufficient valid cluster bootstrap replicates for {key}")
+        intervals[key] = [float(v) for v in np.quantile(values, [0.025, 0.975])]
+    return {"confidence": 0.95, "unit": "episode", "episodes": int(unique.size),
+            "requested_replicates": int(n_boot),
+            "valid_replicates": min(len(v) for v in samples.values()),
+            "intervals": intervals}
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--train-data", required=True)
@@ -76,6 +112,7 @@ def main():
     p.add_argument("--epochs", type=int, default=40)
     p.add_argument("--batch-size", type=int, default=256)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--bootstrap", type=int, default=1000)
     p.add_argument("--device", default="cpu")
     args = p.parse_args()
     if args.epochs < 1 or args.batch_size < 1:
@@ -149,6 +186,9 @@ def main():
     temperature = fit_temperature(calibration_logits, calibration["labels"])
     test_probs = probabilities(test_logits, temperature)
     test_metrics = binary_metrics(Yt, test_probs)
+    test_cluster_ci = episode_cluster_bootstrap(
+        Yt, test_probs, test["episode_ids"], n_boot=args.bootstrap, seed=args.seed
+    )
 
     checkpoint = {
         "state_dict": model.state_dict(),
@@ -159,6 +199,7 @@ def main():
         "validation_bce": best_loss,
         "calibration_temperature_fit": "disjoint calibration split",
         "test_metrics": test_metrics,
+        "test_cluster_bootstrap_95ci": test_cluster_ci,
         "train_episode_ids": sorted(train_seeds),
         "validation_episode_ids": sorted(val_seeds),
         "calibration_episode_ids": sorted(calibration_seeds),
@@ -171,7 +212,7 @@ def main():
         "output": args.output, "temperature": temperature,
         "best_validation_bce": best_loss, "calibration_samples": int(len(calibration["labels"])),
         "test_samples": int(len(Yt)), "test_positive_rate": float(np.mean(Yt)),
-        "test_metrics": test_metrics,
+        "test_metrics": test_metrics, "test_cluster_bootstrap_95ci": test_cluster_ci,
         "split_seeds": {"train": sorted(train_seeds), "validation": sorted(val_seeds),
                         "calibration": sorted(calibration_seeds), "test": sorted(test_seeds)},
     }
