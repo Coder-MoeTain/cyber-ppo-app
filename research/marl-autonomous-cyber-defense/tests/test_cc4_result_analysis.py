@@ -64,3 +64,29 @@ def test_two_level_bootstrap_is_reproducible_and_directional():
 def test_two_level_bootstrap_rejects_invalid_shapes():
     with pytest.raises(ValueError):
         ANALYSIS.two_level_bootstrap_difference(np.ones(3), np.ones(3))
+
+
+def test_expected_matrix_rejects_partial_training_seed_set():
+    with pytest.raises(ValueError, match="Training seed set mismatch"):
+        ANALYSIS.validate_expected_matrix(
+            [11, 22], [501, 502],
+            expected_training=[11, 22, 33],
+            expected_evaluation=[501, 502],
+        )
+
+
+def test_expected_matrix_rejects_partial_held_out_seed_set():
+    with pytest.raises(ValueError, match="Evaluation seed set mismatch"):
+        ANALYSIS.validate_expected_matrix(
+            [11, 22], [501, 502],
+            expected_training=[11, 22],
+            expected_evaluation=[501, 502, 503],
+        )
+
+
+def test_expected_matrix_accepts_exact_preregistered_seed_sets():
+    ANALYSIS.validate_expected_matrix(
+        [11, 22], [501, 502],
+        expected_training=[22, 11],
+        expected_evaluation=[502, 501],
+    )
