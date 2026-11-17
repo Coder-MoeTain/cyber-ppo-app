@@ -32,6 +32,8 @@ simulator step. See `requirements-cc4-validation.txt`.
   on disjoint training/validation datasets.
 - `scripts/train_ra_hmappo_cc4.py`: train RA-HMAPPO on the pinned simulator.
 - `scripts/train_ippo_cc4.py`: train the Independent PPO baseline.
+- `scripts/train_mappo_cc4.py`: train the CTDE MAPPO baseline.
+- `scripts/run_standard_cc4_matrix.sh`: reproducible multi-seed standard-CC4 experiment matrix.
 - `scripts/evaluate_ra_hmappo_cc4.py` and
   `scripts/evaluate_baseline_cc4.py`: evaluate on held-out seeds and write
   episode-level JSONL records.
