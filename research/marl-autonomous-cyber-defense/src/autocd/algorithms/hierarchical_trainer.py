@@ -28,7 +28,7 @@ class RAHMAPPOConfig:
     value_coef: float = 0.5
     max_grad_norm: float = 0.5
     hidden_dim: int = 128
-    num_tasks: int = 5
+    num_tasks: int = 6
 
 
 class RiskAwareHierarchicalTrainer:
@@ -48,6 +48,7 @@ class RiskAwareHierarchicalTrainer:
         seed: int = 42,
         device: str = "cpu",
         reward_aggregation: str = "sum",
+        task_action_mapper: Callable | None = None,
     ):
         if not callable(risk_fn):
             raise TypeError("risk_fn is required and must be callable")
@@ -58,6 +59,7 @@ class RiskAwareHierarchicalTrainer:
         self.seed, self.episode_index = int(seed), 0
         self.device = torch.device(device)
         self.reward_aggregation = reward_aggregation
+        self.task_action_mapper = task_action_mapper
         np.random.seed(self.seed)
         torch.manual_seed(self.seed)
         self.generator = torch.Generator(device=self.device).manual_seed(self.seed)
@@ -116,7 +118,7 @@ class RiskAwareHierarchicalTrainer:
             raise ValueError("steps must be positive")
         keys = ("states", "rewards", "terminated", "boundaries", "next_values",
                 "values", "obs", "risks", "tasks", "actions", "manager_logps",
-                "worker_logps", "action_masks", "episode_returns", "agent_rewards")
+                "worker_logps", "action_masks", "task_masks", "episode_returns", "agent_rewards")
         rows = {key: [] for key in keys}
         running_return = 0.0
 
@@ -124,7 +126,7 @@ class RiskAwareHierarchicalTrainer:
             state = self._state(self._obs)
             state_tensor = torch.as_tensor(state, dtype=torch.float32, device=self.device)
             observations, risks, tasks, actions = {}, {}, {}, {}
-            manager_logps, worker_logps, masks = {}, {}, {}
+            manager_logps, worker_logps, masks, task_masks = {}, {}, {}, {}
             with torch.no_grad():
                 value = float(self.model.value(state_tensor).item())
                 action_dict = {}
@@ -135,13 +137,29 @@ class RiskAwareHierarchicalTrainer:
                     mask = self._action_mask(agent)
                     obs_tensor = torch.as_tensor(obs, dtype=torch.float32, device=self.device)
                     risk_tensor = torch.tensor([risk], dtype=torch.float32, device=self.device)
-                    manager_dist = self.model.manager_distribution(agent, obs_tensor, risk_tensor)
+                    if self.task_action_mapper is None:
+                        task_action_masks = np.repeat(mask[None, :], self.cfg.num_tasks, axis=0)
+                    else:
+                        task_action_masks = np.asarray(
+                            self.task_action_mapper(agent, obs, info, mask), dtype=bool
+                        )
+                    if task_action_masks.shape != (self.cfg.num_tasks, self.action_dims[agent]):
+                        raise ValueError(f"Task/action mask shape mismatch for {agent}")
+                    task_mask = task_action_masks.any(axis=1)
+                    if not task_mask.any():
+                        raise ValueError(f"No available high-level task for {agent}")
+                    manager_dist = self.model.manager_distribution(
+                        agent, obs_tensor, risk_tensor,
+                        torch.as_tensor(task_mask, dtype=torch.bool, device=self.device),
+                    )
                     task_tensor = torch.multinomial(
                         manager_dist.probs, 1, generator=self.generator
                     ).squeeze(-1)
+                    selected_task = int(task_tensor.item())
+                    worker_mask = task_action_masks[selected_task]
                     worker_dist = self.model.worker_distribution(
                         agent, obs_tensor, risk_tensor, task_tensor,
-                        torch.as_tensor(mask, dtype=torch.bool, device=self.device),
+                        torch.as_tensor(worker_mask, dtype=torch.bool, device=self.device),
                     )
                     action_tensor = torch.multinomial(
                         worker_dist.probs, 1, generator=self.generator
@@ -151,7 +169,8 @@ class RiskAwareHierarchicalTrainer:
                     tasks[agent], actions[agent] = task, action
                     manager_logps[agent] = float(manager_dist.log_prob(task_tensor).item())
                     worker_logps[agent] = float(worker_dist.log_prob(action_tensor).item())
-                    masks[agent] = mask
+                    masks[agent] = worker_mask
+                    task_masks[agent] = task_mask
                     action_dict[agent] = action
 
             next_obs, rewards, terms, truncs, next_infos = self.env.step(action_dict)
@@ -193,6 +212,7 @@ class RiskAwareHierarchicalTrainer:
             rows["manager_logps"].append(manager_logps)
             rows["worker_logps"].append(worker_logps)
             rows["action_masks"].append(masks)
+            rows["task_masks"].append(task_masks)
             rows["agent_rewards"].append(agent_rewards)
             running_return += team_reward
 
@@ -225,7 +245,7 @@ class RiskAwareHierarchicalTrainer:
 
         states = torch.as_tensor(np.asarray(rollout["states"]), dtype=torch.float32, device=self.device)
         obs_t, risks_t, tasks_t, actions_t = {}, {}, {}, {}
-        old_manager_t, old_worker_t, masks_t = {}, {}, {}
+        old_manager_t, old_worker_t, masks_t, task_masks_t = {}, {}, {}, {}
         for agent in self.agents:
             obs_t[agent] = torch.as_tensor(
                 np.stack([r[agent] for r in rollout["obs"]]), dtype=torch.float32, device=self.device
@@ -245,6 +265,10 @@ class RiskAwareHierarchicalTrainer:
             old_worker_t[agent] = torch.tensor(
                 [r[agent] for r in rollout["worker_logps"]], dtype=torch.float32, device=self.device
             )
+            task_masks_t[agent] = torch.as_tensor(
+                np.stack([r[agent] for r in rollout["task_masks"]]),
+                dtype=torch.bool, device=self.device
+            )
             masks_t[agent] = torch.as_tensor(
                 np.stack([r[agent] for r in rollout["action_masks"]]),
                 dtype=torch.bool, device=self.device
@@ -263,6 +287,7 @@ class RiskAwareHierarchicalTrainer:
                     evaluated = self.model.evaluate_actions(
                         agent, obs_t[agent][idx], risks_t[agent][idx],
                         tasks_t[agent][idx], actions_t[agent][idx],
+                        task_masks=task_masks_t[agent][idx],
                         action_masks=masks_t[agent][idx],
                     )
                     new_manager = evaluated["manager_log_prob"]
