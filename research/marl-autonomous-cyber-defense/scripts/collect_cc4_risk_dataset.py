@@ -27,7 +27,7 @@ def red_present_in_agent_zone(adapter, agent):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seeds", type=int, nargs="+", required=True)
-    parser.add_argument("--steps", type=int, default=100)
+    parser.add_argument("--steps", type=int, default=500)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     if args.steps < 1:
