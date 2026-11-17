@@ -51,7 +51,7 @@ The team return aggregation must be frozen before final evaluation. The current 
 
 ### 4.1 Risk estimator
 
-A supervised binary estimator predicts whether a red session is present in the local zone. Ground-truth simulator state is used offline to create labels; the trained estimator receives local Blue observations and an agent identity encoding at inference. The implemented protocol separates training seeds (11–111), model-selection seeds (201–220), temperature-calibration seeds (301–320), and final risk-model test seeds (401–420). The final policy evaluation uses a separate seed range (501–600). The training script reports test AUROC, AUPRC, Brier score and ECE, together with 95% episode-cluster bootstrap intervals. These seed assignments and the final sample/episode counts must be preserved in the experiment manifest.
+A supervised binary estimator predicts whether a red session is present in the local zone. Ground-truth simulator state is used offline to create labels; the trained estimator receives local Blue observations and an agent identity encoding at inference. The implemented protocol separates training seeds (101–120), model-selection seeds (201–220), temperature-calibration seeds (301–320), and final risk-model test seeds (401–420). The final policy evaluation uses a separate seed range (501–600). The training script reports test AUROC, AUPRC, Brier score and ECE, together with 95% episode-cluster bootstrap intervals. These seed assignments and the final sample/episode counts must be preserved in the experiment manifest.
 
 ### 4.2 Hierarchical policy
 
