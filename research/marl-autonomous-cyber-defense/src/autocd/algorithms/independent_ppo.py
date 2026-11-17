@@ -211,7 +211,7 @@ class IndependentPPOTrainer:
             losses.extend(actor_losses)
         return {"agents": metrics, "mean_actor_loss": float(np.mean(losses))}
 
-    def train(self, total_steps=1024, rollout_steps=128):
+    def train(self, total_steps=1024, rollout_steps=128, on_update=None):
         if total_steps < 1 or rollout_steps < 1:
             raise ValueError("step counts must be positive")
         history, steps = [], 0
@@ -219,5 +219,8 @@ class IndependentPPOTrainer:
             rollout = self.collect_rollout(min(rollout_steps, total_steps-steps))
             metrics = self.update(rollout)
             steps += len(next(iter(rollout["agents"].values()))["rewards"])
-            history.append({"environment_steps": steps, **metrics})
+            record = {"environment_steps": steps, **metrics}
+            history.append(record)
+            if on_update is not None:
+                on_update(record)
         return history
