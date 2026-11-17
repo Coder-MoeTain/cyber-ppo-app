@@ -4,6 +4,7 @@ Privileged simulator state is read only to produce supervised training labels.
 It is never passed to the policy or risk predictor at inference time.
 """
 import argparse
+from pathlib import Path
 import numpy as np
 
 from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
@@ -67,6 +68,7 @@ def main():
 
     if not X:
         raise RuntimeError("No CC4 samples collected")
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
         args.output,
         observations=np.stack(X),
