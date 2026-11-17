@@ -40,10 +40,10 @@ def main():
                 "seed": args.seed, "episode_steps": args.episode_steps,
                 "rollout_steps": args.rollout_steps, "device": args.device,
                 "agents": list(trainer.agents),
-                "observation_dim": getattr(trainer, "obs_dim", None),
+                "observation_dim": trainer.obs_dim if hasattr(trainer, "obs_dim") else next(iter(trainer.observation_dims.values())),
                 "action_dims": getattr(trainer, "action_dims", None),
                 "global_state_dim": getattr(trainer, "global_state_dim", None),
-                "config": asdict(config) if "config" in locals() else (asdict(cfg) if "cfg" in locals() else {}),
+                "config": asdict(cfg),
             },
         )
         training_start = time.perf_counter()
