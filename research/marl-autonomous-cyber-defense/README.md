@@ -1,32 +1,22 @@
-# Risk-Aware Hierarchical Multi-Agent Cyber Defense
+# Risk-Aware Hierarchical Multi-Agent Reinforcement Learning for Coordinated Autonomous Cyber Defense
 
-Research implementation for **Risk-Aware Hierarchical Multi-Agent Reinforcement Learning for Coordinated Autonomous Cyber Defense in Enterprise Networks**.
-
-## v0.3.0 status
-- CTDE MAPPO trainer with per-agent actors, centralized critic, dynamic action masking and GAE boundary handling.
-- CybORG / CAGE Challenge 4 adapter boundary and validation script.
-- MAPPO mock smoke script, statistical utilities, tests and publication-readiness gates.
-- Responsive Sentinel MARL research dashboard preview in `dashboard/`.
-
-**Validation boundary:** unit tests and smoke training use the mock environment. The live CybORG/CAGE Challenge 4 simulator has not yet been validated. Do not treat mock returns as benchmark results. Pin the exact CybORG commit and run `python scripts/validate_cyborg.py` before simulator experiments.
+Research package for CAGE Challenge 4 / CybORG enterprise cyber defence.
+Includes a mock environment, CTDE MAPPO scaffold, CybORG adapter boundary,
+statistical utilities and risk-conditioned hierarchical manager/worker policy.
 
 ## Quick start
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-pytest -q
-python scripts/train_mock_mappo.py --steps 8 --rollout-steps 4 --seed 42
-```
+Install development dependencies with pip install -e ".[dev]", then run
+pytest -q. For a software smoke test run:
+PYTHONPATH=src python scripts/train_mock_mappo.py --steps 256 --rollout-steps 64 --seed 42
 
-## Dashboard preview
-```bash
-cd dashboard
-python -m http.server 8080
-```
-Open http://localhost:8080. The UI uses illustrative values; the mock-run button does not start model training and live API integration is pending.
+The mock training command is not a CybORG benchmark and is not scientific
+evidence for a paper.
 
-## Publication gates
-See [docs/PUBLICATION_READINESS.md](docs/PUBLICATION_READINESS.md). Learned risk-aware hierarchy, Independent PPO baseline, live CybORG experiments, multi-seed comparisons, ablations and paper evidence remain outstanding.
+## Status
+- MAPPO trainer: implemented; mock-tested.
+- Hierarchical manager/worker networks: implemented and unit-tested; not yet
+  integrated into a PPO rollout/update loop.
+- CybORG adapter: integration boundary implemented; live simulator validation pending.
+- Dashboard: static frontend prototype with illustrative values only.
 
-Official simulator: https://github.com/cage-challenge/CybORG
+See docs/PUBLICATION_READINESS.md for remaining research and reproducibility gates.
