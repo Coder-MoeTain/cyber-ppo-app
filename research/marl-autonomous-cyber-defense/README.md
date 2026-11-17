@@ -41,7 +41,22 @@ simulator step. See `requirements-cc4-validation.txt`.
 
 The Team UC-inspired heuristic is an independent reimplementation, not an exact
 reproduction of a published CC4 competition agent; it omits malicious-file flags.
-The simpler alert-only comparator is also available. The dashboard is a static frontend with
-illustrative values and is not connected to live experiment telemetry.
+The simpler alert-only comparator is also available.
+
+## GPU training dashboard
+
+The dashboard now includes an authenticated FastAPI control plane for launching
+RA-HMAPPO, MAPPO and IPPO CC4 training jobs, monitoring per-update progress,
+viewing GPU memory telemetry, inspecting model architecture/configuration,
+reading process logs, and downloading rolling/final checkpoints. It binds to
+loopback by default; use SSH tunnelling for remote GPU-server access.
+
+See `dashboard/README.md` for pinned environment setup, token generation,
+remote access, training controls, checkpoint behavior and troubleshooting.
+
+```bash
+python -m pip install -r dashboard/requirements-server.txt
+bash dashboard/start_dashboard.sh
+```
 
 See `docs/PUBLICATION_READINESS.md` before making any publication claims.
