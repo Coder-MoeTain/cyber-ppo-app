@@ -1,0 +1,19 @@
+name: Research unit tests
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: research/marl-autonomous-cyber-defense
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: research/marl-autonomous-cyber-defense/pyproject.toml
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pytest -q
+      - run: python scripts/train_mock_ppo.py --episodes 2
+      - run: python scripts/train_mock_mappo.py --steps 8 --rollout-steps 4 --seed 42
