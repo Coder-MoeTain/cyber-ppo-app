@@ -29,7 +29,7 @@ def red_host_count(adapter, hostnames):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--checkpoint", required=True)
-    p.add_argument("--risk-checkpoint", required=True)
+    p.add_argument("--risk-checkpoint")
     p.add_argument("--seeds", type=int, nargs="+", required=True)
     p.add_argument("--episode-steps", type=int, default=500)
     p.add_argument("--device", default="cpu")
@@ -52,8 +52,20 @@ def main():
         ).to(args.device)
         model.load_state_dict(checkpoint["model_state_dict"])
         model.eval()
-        risk_fn = RiskPredictor.load(args.risk_checkpoint, device=args.device)
-        task_mapper = CC4TaskActionMapper(env.env)
+        risk_mode = checkpoint.get("risk_mode", "predicted")
+        if risk_mode == "predicted":
+            risk_path = args.risk_checkpoint or checkpoint.get("risk_checkpoint")
+            if not risk_path:
+                raise RuntimeError("Predicted-risk checkpoint is required by this policy")
+            risk_fn = RiskPredictor.load(risk_path, device=args.device)
+        elif risk_mode == "constant":
+            if args.risk_checkpoint:
+                raise RuntimeError("Do not supply a risk checkpoint for constant-risk ablation")
+            risk_fn = lambda agent, obs, info: 0.5
+        else:
+            raise RuntimeError(f"Unknown checkpoint risk_mode: {risk_mode}")
+        task_mapping = checkpoint.get("task_mapping", "semantic")
+        task_mapper = CC4TaskActionMapper(env.env) if task_mapping == "semantic" else None
 
         for seed in args.seeds:
             observations, infos = env.reset(seed=seed)
@@ -72,7 +84,10 @@ def main():
                     mask = masks[agent]
                     obs_tensor = torch.as_tensor(obs, dtype=torch.float32, device=args.device)
                     risk_tensor = torch.tensor([risk], dtype=torch.float32, device=args.device)
-                    task_action_masks = task_mapper(agent, obs, infos.get(agent, {}), mask)
+                    task_action_masks = (
+                        task_mapper(agent, obs, infos.get(agent, {}), mask)
+                        if task_mapper is not None else np.repeat(mask[None, :], model.num_tasks, axis=0)
+                    )
                     task_mask = torch.as_tensor(
                         task_action_masks.any(axis=1), dtype=torch.bool, device=args.device
                     )
@@ -111,6 +126,9 @@ def main():
             records.append({
                 "seed": int(seed),
                 "training_seed": int(checkpoint["seed"]),
+                "risk_mode": checkpoint.get("risk_mode", "predicted"),
+                "task_mapping": checkpoint.get("task_mapping", "semantic"),
+                "reward_aggregation": checkpoint.get("reward_aggregation", "sum"),
                 "steps": steps,
                 "team_reward_sum": float(sum(totals.values())),
                 "team_reward_mean_per_agent": float(np.mean(list(totals.values()))),
