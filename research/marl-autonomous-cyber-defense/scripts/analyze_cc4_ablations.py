@@ -84,6 +84,10 @@ def main():
 
         summaries[name] = {
             "episodes": int(values.size),
+            "policy_configuration": {
+                key: sorted({str(r.get(key, "unspecified")) for r in records})
+                for key in ("risk_mode", "manager_mode", "task_mapping", "reward_aggregation")
+            },
             "mean_team_reward_sum": float(values.mean()),
             "std_team_reward_sum": float(values.std(ddof=1)),
             "mean_invalid_action_rate": mean_metric(
