@@ -1,0 +1,30 @@
+project:
+  name: risk-aware-hierarchical-marl-cyber-defense
+  version: 0.3.0
+  benchmark: CAGE-Challenge-4
+  environment: CybORG
+  seed: 42
+  cyborg_commit: REQUIRED_BEFORE_EXPERIMENTS
+agents:
+  names: [blue_agent_0, blue_agent_1, blue_agent_2, blue_agent_3, blue_agent_4]
+  observation_wrapper: BlueFlatWrapper
+  pad_spaces: true
+  action_masking: true
+algorithm:
+  name: MAPPO
+  centralized_training: true
+  decentralized_execution: true
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  learning_rate: 0.0003
+  update_epochs: 4
+  minibatch_size: 64
+  entropy_coefficient: 0.01
+  value_coefficient: 0.5
+  max_grad_norm: 0.5
+experiment:
+  total_environment_steps: 1000000
+  evaluation_seeds: [101, 202, 303, 404, 505, 606, 707, 808, 909, 1001]
+  evaluation_episodes_per_seed: 10
+  publication_evaluation_enabled: false
