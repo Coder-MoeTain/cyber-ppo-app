@@ -1,9 +1,9 @@
 project:
   name: risk-aware-hierarchical-marl-cyber-defense
-  version: 0.4.0
+  version: 0.5.0
   benchmark: CAGE-Challenge-4
   environment: CybORG
-  cyborg_commit: REQUIRED_BEFORE_EXPERIMENTS
+  cyborg_commit: 8c3c50ca54b176c2de199847944e8dcc035497e3
   seed: 42
 agents:
   names: [blue_agent_0, blue_agent_1, blue_agent_2, blue_agent_3, blue_agent_4]
@@ -23,10 +23,11 @@ hierarchy:
     - recover
   risk_input:
     range: [0.0, 1.0]
-    source: REQUIRED_VALIDATED_RISK_ESTIMATOR
+    source: offline_supervised_local_observation_model
+    checkpoint: artifacts/cc4_risk.pt
 algorithm:
-  name: RA-HMAPPO-architecture
-  status: policy_architecture_only_not_trainer_integrated
+  name: RA-HMAPPO
+  status: trainer_implemented_live_cc4_validation_pending
   gamma: 0.99
   gae_lambda: 0.95
   clip_epsilon: 0.2
@@ -37,7 +38,10 @@ algorithm:
   worker_entropy_coefficient: 0.01
   value_coefficient: 0.5
 experiment:
-  evaluation_seeds: [101, 202, 303, 404, 505, 606, 707, 808, 909, 1001]
+  episode_steps: 500
+  total_environment_steps: 1000000
+  training_seeds: [11, 22, 33, 44, 55, 66, 77, 88, 99, 111]
+  evaluation_seeds: [501, 502, 503, 504, 505, 506, 507, 508, 509, 510]
   evaluation_episodes_per_seed: 10
   publication_evaluation_enabled: false
-  note: Do not run or report benchmark experiments until simulator commit, task mapping, and reward semantics are verified.
+  note: Freeze task mapping, reward aggregation and scenario splits before benchmark experiments.
