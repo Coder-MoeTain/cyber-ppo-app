@@ -20,6 +20,9 @@ upgrade the simulator during an experiment series.
 - Team UC-inspired stateful heuristic is implemented, with a separate
   alert-only comparator. Verify it against the published challenge description;
   it omits malicious-file flags and is not an exact competition reproduction.
+- Prior H-MARL for CAGE-4 (Singh et al., 2024) is a required related-work and
+  baseline target. Implement a faithful reproduction or explicitly justify why
+  source/config incompatibility prevents a direct comparison.
 - Independent PPO with decentralized actor/critic per agent.
 - MAPPO with decentralized actors and centralized critic.
 - Proposed RA-HMAPPO with learned manager and worker policies.
