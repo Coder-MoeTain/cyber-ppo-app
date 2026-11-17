@@ -56,6 +56,26 @@ def heuristic_vector(records):
     return seeds, values
 
 
+def validate_expected_matrix(training_seeds, evaluation_seeds, *, expected_training, expected_evaluation):
+    """Reject partial matrices even when the observed rows form a rectangular grid."""
+    actual_training = list(map(int, training_seeds))
+    actual_evaluation = list(map(int, evaluation_seeds))
+    expected_training = list(map(int, expected_training))
+    expected_evaluation = list(map(int, expected_evaluation))
+    if len(set(expected_training)) != len(expected_training):
+        raise ValueError("Expected training seeds contain duplicates")
+    if len(set(expected_evaluation)) != len(expected_evaluation):
+        raise ValueError("Expected evaluation seeds contain duplicates")
+    if actual_training != sorted(expected_training):
+        raise ValueError(
+            f"Training seed set mismatch: expected {sorted(expected_training)}, got {actual_training}"
+        )
+    if actual_evaluation != sorted(expected_evaluation):
+        raise ValueError(
+            f"Evaluation seed set mismatch: expected {sorted(expected_evaluation)}, got {actual_evaluation}"
+        )
+
+
 def two_level_bootstrap_difference(a, b, *, n_boot=10000, seed=1234):
     """Resample independent training seeds and paired evaluation seeds."""
     a, b = np.asarray(a, float), np.asarray(b, float)
@@ -110,6 +130,10 @@ def main():
     p.add_argument("--output", required=True)
     p.add_argument("--bootstrap", type=int, default=10000)
     p.add_argument("--seed", type=int, default=1234)
+    p.add_argument("--expected-training-seeds", type=int, nargs="+",
+                   default=[11, 22, 33, 44, 55, 66, 77, 88, 99, 111])
+    p.add_argument("--expected-evaluation-seeds", type=int, nargs="+",
+                   default=list(range(501, 601)))
     args = p.parse_args()
     if args.bootstrap < 100:
         raise ValueError("bootstrap must be at least 100")
@@ -122,6 +146,11 @@ def main():
     ippo_train, ippo_eval, ippo = model_matrix(ippo_records)
     mappo_train, mappo_eval, mappo = model_matrix(mappo_records)
     h_seeds, h = heuristic_vector(heuristic_records)
+    validate_expected_matrix(
+        ra_train, eval_seeds,
+        expected_training=args.expected_training_seeds,
+        expected_evaluation=args.expected_evaluation_seeds,
+    )
     if ra_train != ippo_train or ra_train != mappo_train:
         raise ValueError("RA-HMAPPO, IPPO and MAPPO must use the same training seeds")
     if eval_seeds != ippo_eval or eval_seeds != mappo_eval or eval_seeds != h_seeds:
