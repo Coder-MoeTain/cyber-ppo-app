@@ -56,10 +56,12 @@ class CC4TeamUCInspiredPolicy:
                 return index
         for host in sorted(process_hosts):
             index = self._find(labels, mask, lambda label: label == f"Remove {host}")
-            if index is None:
-                index = self._find(labels, mask, lambda label: label == f"Restore {host}")
             if index is not None:
                 self.removed[agent].add(host)
+                self.last_analyzed[agent][host] = step
+                return index
+            index = self._find(labels, mask, lambda label: label == f"Restore {host}")
+            if index is not None:
                 self.last_analyzed[agent][host] = step
                 return index
         return None
