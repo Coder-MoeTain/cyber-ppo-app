@@ -44,6 +44,10 @@ done
   --seeds "${EVAL_SEEDS[@]}" --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --profile-inference \
   --output "$RESULTS/heuristic.jsonl"
 
+"$PYTHON" scripts/evaluate_baseline_cc4.py --baseline alert-only \
+  --seeds "${EVAL_SEEDS[@]}" --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --profile-inference \
+  --output "$RESULTS/alert_only.jsonl"
+
 for seed in "${TRAIN_SEEDS[@]}"; do
   "$PYTHON" scripts/evaluate_ra_hmappo_cc4.py --checkpoint "$OUT/ra_hmappo_seed${seed}.pt" \
     --risk-checkpoint "$OUT/cc4_risk.pt" --seeds "${EVAL_SEEDS[@]}" \
