@@ -8,6 +8,7 @@ import torch
 
 from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
 from autocd.algorithms.independent_ppo import IndependentActorCritic
+from autocd.algorithms.mappo_trainer import CTDEActorCritic
 from autocd.baselines.cc4_heuristic import CC4AlertGuidedPolicy
 from autocd.envs.cyborg_adapter import CybORGAdapter
 
@@ -25,7 +26,7 @@ def red_host_count(adapter, hostnames):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--baseline", choices=["ippo", "heuristic"], required=True)
+    p.add_argument("--baseline", choices=["ippo", "mappo", "heuristic"], required=True)
     p.add_argument("--checkpoint")
     p.add_argument("--seeds", type=int, nargs="+", required=True)
     p.add_argument("--episode-steps", type=int, default=500)
@@ -33,9 +34,9 @@ def main():
     p.add_argument("--output", required=True)
     args = p.parse_args()
     checkpoint = None
-    if args.baseline == "ippo":
+    if args.baseline in {"ippo", "mappo"}:
         if not args.checkpoint:
-            p.error("--checkpoint is required for IPPO")
+            p.error("--checkpoint is required for learned baselines")
         checkpoint = torch.load(args.checkpoint, map_location=args.device, weights_only=False)
 
     env = CybORGAdapter(
@@ -47,10 +48,16 @@ def main():
             env.reset(seed=args.seeds[0])
             if list(env.possible_agents) != checkpoint["agents"]:
                 raise RuntimeError("Checkpoint agent order differs from CC4")
-            model = IndependentActorCritic(
-                checkpoint["observation_dims"], checkpoint["action_dims"],
-                checkpoint["hidden_dim"],
-            ).to(args.device)
+            if args.baseline == "ippo":
+                model = IndependentActorCritic(
+                    checkpoint["observation_dims"], checkpoint["action_dims"],
+                    checkpoint["hidden_dim"],
+                ).to(args.device)
+            else:
+                model = CTDEActorCritic(
+                    checkpoint["observation_dims"], checkpoint["action_dims"],
+                    checkpoint["global_state_dim"], checkpoint["hidden_dim"],
+                ).to(args.device)
             model.load_state_dict(checkpoint["model_state_dict"])
             model.eval()
         else:
