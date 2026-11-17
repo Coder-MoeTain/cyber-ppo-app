@@ -33,6 +33,8 @@ been produced in this release.
   alert-only comparator; neither is an exact competition-source reproduction.
 - [ ] Validate the Team UC-inspired implementation against published policy
   details and report its missing malicious-file features.
+- [ ] Reproduce or implement a defensible comparison against Singh et al.'s
+  prior H-MARL CAGE-4 method; hierarchy alone is not a novel contribution.
 - [x] Official CAGE Challenge 4 source revision pinned in `configs/cc4.lock.yaml`.
 - [x] Real CC4 adapter reset, same-seed replay, action-mask and one-step smoke validation.
 - [x] Real CC4 offline risk-dataset collection smoke and RA-HMAPPO rollout/update smoke.
