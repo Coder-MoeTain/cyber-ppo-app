@@ -2,55 +2,121 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0b1220"><title>Sentinel MARL | Research Console</title>
+  <meta name="theme-color" content="#080e19"><title>Sentinel MARL · GPU Training Console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
-<div class="app-shell">
+<div class="shell">
   <aside class="sidebar" id="sidebar">
-    <a class="brand" href="#"><span class="brand-mark">S</span><span><b>SENTINEL</b><small>MARL RESEARCH LAB</small></span></a>
-    <div class="workspace-label">WORKSPACE</div>
-    <nav class="nav">
-      <a class="nav-item active" href="#overview" data-view="overview"><span>◫</span> Overview</a>
-      <a class="nav-item" href="#agents" data-view="agents"><span>⌘</span> Agent fleet</a>
-      <a class="nav-item" href="#experiments" data-view="experiments"><span>◷</span> Experiments</a>
-      <a class="nav-item" href="#evaluation" data-view="evaluation"><span>⌁</span> Evaluation</a>
-      <a class="nav-item" href="#environment" data-view="environment"><span>▦</span> Environment</a>
+    <a class="brand" href="#"><span class="brand-icon">S</span><span><b>SENTINEL</b><small>MARL RESEARCH LAB</small></span></a>
+    <div class="side-label">WORKSPACE</div>
+    <nav>
+      <a class="nav active" href="#training"><span>◫</span> Training console</a>
+      <a class="nav" href="#model"><span>⌘</span> Model architecture</a>
+      <a class="nav" href="#telemetry"><span>⌁</span> Live telemetry</a>
+      <a class="nav" href="#checkpoints"><span>▤</span> Checkpoints</a>
+      <a class="nav" href="#system"><span>▦</span> GPU & environment</a>
     </nav>
-    <div class="sidebar-bottom"><div class="connection"><i></i><span>Research workspace</span><b>LOCAL</b></div><div class="user"><div class="avatar">RL</div><span><b>Researcher</b><small>Principal investigator</small></span><span class="more">···</span></div></div>
+    <div class="side-foot"><div class="secure"><i></i> LOCAL CONTROL PLANE</div><div class="version">RESEARCH BRANCH · CC4</div></div>
   </aside>
   <main class="main">
-    <header class="topbar"><button class="mobile-menu" id="menuBtn" aria-label="Toggle navigation">☰</button><div class="breadcrumb">Research workspace <span>/</span> <b id="crumb">Overview</b></div><div class="top-actions"><span class="env-pill"><i></i> MOCK ENVIRONMENT</span><button class="icon-btn" title="Notifications">♧</button><div class="avatar small">RL</div></div></header>
-    <section class="content">
-      <div class="page-heading"><div><div class="eyebrow">AUTONOMOUS CYBER DEFENSE / CONTROL PLANE</div><h1 id="pageTitle">Research overview</h1><p>Monitor cooperative agents, training health and experiment readiness.</p></div><div class="heading-actions"><button class="btn btn-quiet" id="exportBtn">↓ Export snapshot</button><button class="btn btn-primary" id="runBtn">▶ Run mock episode</button></div></div>
-      <div class="notice"><span class="notice-icon">i</span><div><b>Simulation preview</b><p>Dashboard values are illustrative mock data. Live CybORG telemetry and model controls are not connected yet.</p></div><span class="notice-tag">DEMO DATA</span></div>
-      <div class="section-head"><div><h2>Operational snapshot</h2><p>Latest mock run · seed 42 · CAGE-style five-agent team</p></div><span class="updated" id="lastUpdated">UPDATED JUST NOW</span></div>
-      <div class="metrics">
-        <article class="metric-card"><div class="metric-top"><span>TEAM REWARD</span><span class="metric-icon purple">↗</span></div><div class="metric-value" id="reward">+184.6</div><div class="metric-foot"><span class="positive">+12.8%</span> vs previous run</div><div class="sparkline purple-line"><svg viewBox="0 0 160 34"><path d="M0 28 L18 24 34 26 50 14 67 20 83 9 100 15 116 7 135 11 160 2"/></svg></div></article>
-        <article class="metric-card"><div class="metric-top"><span>ASSET EXPOSURE</span><span class="metric-icon amber">⌖</span></div><div class="metric-value">18.2<span class="unit">%</span></div><div class="metric-foot"><span class="positive">−6.4%</span> risk-weighted exposure</div><div class="sparkline amber-line"><svg viewBox="0 0 160 34"><path d="M0 4 L18 9 34 8 50 16 67 13 83 21 100 18 116 25 135 22 160 31"/></svg></div></article>
-        <article class="metric-card"><div class="metric-top"><span>SERVICE AVAILABILITY</span><span class="metric-icon green">◉</span></div><div class="metric-value">99.4<span class="unit">%</span></div><div class="metric-foot"><span class="positive">+0.7%</span> service health</div><div class="sparkline green-line"><svg viewBox="0 0 160 34"><path d="M0 22 L18 18 34 19 50 12 67 15 83 10 100 12 116 5 135 8 160 3"/></svg></div></article>
-        <article class="metric-card"><div class="metric-top"><span>ACTIVE AGENTS</span><span class="metric-icon blue">⌘</span></div><div class="metric-value">05<span class="unit">/05</span></div><div class="metric-foot"><span class="positive">All online</span> cooperative team</div><div class="agent-dots"><i></i><i></i><i></i><i></i><i></i></div></article>
-      </div>
-      <div class="grid-main">
-        <article class="panel chart-panel"><div class="panel-head"><div><h3>Training performance</h3><p>Illustrative episode reward trajectory</p></div><div class="chart-legend"><span><i class="legend-purple"></i> MAPPO</span><span><i class="legend-muted"></i> Baseline</span></div></div><div class="chart-wrap"><div class="y-labels"><span>200</span><span>150</span><span>100</span><span>50</span><span>0</span></div><svg class="performance-chart" viewBox="0 0 640 210" preserveAspectRatio="none" role="img" aria-label="Illustrative reward trend chart"><defs><linearGradient id="area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8b7cff" stop-opacity=".28"/><stop offset="1" stop-color="#8b7cff" stop-opacity="0"/></linearGradient></defs><path class="gridline" d="M0 8H640 M0 55H640 M0 102H640 M0 149H640 M0 196H640"/><path class="baseline" d="M0 177 C70 170 80 158 140 165 S220 142 280 151 S350 130 420 139 S510 119 570 127 L640 116"/><path class="reward-area" d="M0 190 C40 184 58 164 100 171 S160 132 210 143 S260 104 320 119 S390 78 440 93 S500 52 550 62 S600 35 640 20 L640 196 L0 196Z"/><path class="reward-line" d="M0 190 C40 184 58 164 100 171 S160 132 210 143 S260 104 320 119 S390 78 440 93 S500 52 550 62 S600 35 640 20"/></svg></div><div class="x-labels"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500 episodes</span></div></article>
-        <article class="panel readiness-panel"><div class="panel-head"><div><h3>Research readiness</h3><p>Implementation gates</p></div><span class="status status-warn">IN PROGRESS</span></div><div class="readiness-score"><strong>62%</strong><span>milestone completion</span></div><div class="progress"><i style="width:62%"></i></div><div class="gate-list"><div><span class="gate done">✓</span><span>Mock environment & PPO baseline</span><b>Done</b></div><div><span class="gate done">✓</span><span>MAPPO trainer & unit tests</span><b>Done</b></div><div><span class="gate warn">!</span><span>Live CybORG / CC4 validation</span><b>Pending</b></div><div><span class="gate pending">·</span><span>Risk-aware learned hierarchy</span><b>Planned</b></div></div></article>
-      </div>
-      <div class="section-head lower-head"><div><h2>Cooperative agent fleet</h2><p>Five Blue agents · decentralized execution / centralized training</p></div><a href="#agents" class="text-link" data-view="agents">View agent fleet →</a></div>
-      <div class="agent-grid" id="agentGrid">
-        <article class="agent-card"><div class="agent-head"><span class="agent-symbol">A1</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 01</h3><p>Endpoint monitoring</p><div class="agent-stats"><span>Policy entropy <b>0.84</b></span><span>Action confidence <b>92%</b></span></div><div class="mini-progress"><i style="width:92%"></i></div></article>
-        <article class="agent-card"><div class="agent-head"><span class="agent-symbol teal">A2</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 02</h3><p>Network defense</p><div class="agent-stats"><span>Policy entropy <b>0.79</b></span><span>Action confidence <b>88%</b></span></div><div class="mini-progress"><i style="width:88%"></i></div></article>
-        <article class="agent-card"><div class="agent-head"><span class="agent-symbol amber-bg">A3</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 03</h3><p>Threat investigation</p><div class="agent-stats"><span>Policy entropy <b>0.91</b></span><span>Action confidence <b>85%</b></span></div><div class="mini-progress"><i style="width:85%"></i></div></article>
-        <article class="agent-card"><div class="agent-head"><span class="agent-symbol blue-bg">A4</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 04</h3><p>Containment response</p><div class="agent-stats"><span>Policy entropy <b>0.73</b></span><span>Action confidence <b>94%</b></span></div><div class="mini-progress"><i style="width:94%"></i></div></article>
-        <article class="agent-card"><div class="agent-head"><span class="agent-symbol rose-bg">A5</span><span class="live-status"><i></i> ONLINE</span></div><h3>Blue Agent 05</h3><p>Recovery coordination</p><div class="agent-stats"><span>Policy entropy <b>0.88</b></span><span>Action confidence <b>89%</b></span></div><div class="mini-progress"><i style="width:89%"></i></div></article>
-      </div>
-      <div class="grid-bottom"><article class="panel"><div class="panel-head"><div><h3>Recent activity</h3><p>Mock experiment event stream</p></div><span class="live-label">● LIVE PREVIEW</span></div><div class="activity-list" id="activityList"><div class="activity"><i class="activity-dot purple-dot"></i><div><b>MAPPO rollout completed</b><small>5 agents · 128 steps · seed 42</small></div><time>12:42:08</time></div><div class="activity"><i class="activity-dot green-dot"></i><div><b>Service availability maintained</b><small>Critical services healthy · 99.4%</small></div><time>12:41:52</time></div><div class="activity"><i class="activity-dot amber-dot"></i><div><b>Elevated host risk observed</b><small>Agent 03 selected investigation action</small></div><time>12:41:31</time></div></div></article>
-      <article class="panel experiment-panel"><div class="panel-head"><div><h3>Quick experiment</h3><p>Configure a local preview run</p></div></div><label for="algorithm">ALGORITHM</label><select id="algorithm"><option>MAPPO</option><option>Independent PPO</option><option>PPO baseline</option><option>Rule-based baseline</option></select><div class="form-row"><div><label for="seed">SEED</label><input id="seed" type="number" value="42" min="0"></div><div><label for="steps">ROLLOUT STEPS</label><select id="steps"><option>128</option><option>256</option><option>512</option></select></div></div><button class="btn btn-primary full" id="configureRun">Preview configuration →</button><p class="form-hint">Preview only. This does not launch model training.</p></article></div>
-      <footer>Sentinel MARL Research Console <span>v0.3.0 · UI preview</span><span>Built for reproducible cyber-defense research</span></footer>
-    </section>
+    <header class="topbar">
+      <div class="crumb">Research workspace <span>/</span> <b>GPU training console</b></div>
+      <div class="top-right"><span class="server-state" id="serverState"><i></i> CONNECTING</span><button class="outline-btn" id="authBtn">API access</button></div>
+    </header>
+    <div class="page">
+      <section class="hero" id="training">
+        <div><div class="eyebrow">AUTONOMOUS CYBER DEFENSE · CAGE CHALLENGE 4</div><h1>GPU Training Console</h1><p>Configure, launch and monitor reproducible multi-agent reinforcement-learning experiments on this server.</p></div>
+        <div class="hero-tag"><span class="pulse"></span> LIVE SERVER CONTROL</div>
+      </section>
+      <section class="notice" id="notice"><b>Server connection required</b><span>Authenticate with your dashboard token to read GPU telemetry and control training jobs. No demo metrics are shown.</span></section>
+
+      <section class="kpis">
+        <article class="kpi"><div class="kpi-label">TRAINING STATUS</div><div class="kpi-value" id="kStatus">—</div><div class="kpi-sub" id="kJob">No active job</div></article>
+        <article class="kpi"><div class="kpi-label">ENVIRONMENT STEPS</div><div class="kpi-value mono" id="kSteps">0 <small>/ 0</small></div><div class="kpi-sub" id="kSpeed">Waiting for training</div></article>
+        <article class="kpi"><div class="kpi-label">ELAPSED / ETA</div><div class="kpi-value mono" id="kTime">—</div><div class="kpi-sub" id="kEta">ETA —</div></article>
+        <article class="kpi"><div class="kpi-label">GPU DEVICE</div><div class="kpi-value" id="kGpu">Detecting…</div><div class="kpi-sub" id="kGpuMem">CUDA telemetry pending</div></article>
+      </section>
+
+      <section class="layout">
+        <article class="panel config-panel">
+          <div class="panel-title"><div><span class="eyebrow">EXPERIMENT SETUP</span><h2>New training run</h2><p>Launch one reproducible policy training job.</p></div><span class="tag">CC4 · 5 BLUE AGENTS</span></div>
+          <form id="trainForm">
+            <div class="field"><label for="algorithm">ALGORITHM</label><select id="algorithm"><option value="RA-HMAPPO">Risk-Aware Hierarchical MAPPO</option><option value="MAPPO">Centralized Training MAPPO</option><option value="IPPO">Independent PPO</option></select><small id="algorithmHint">Hierarchical manager + task-conditioned worker + centralized critic + local risk estimator.</small></div>
+            <div class="two">
+              <div class="field"><label for="device">COMPUTE DEVICE</label><select id="device"><option value="auto">Auto-detect GPU</option><option value="cuda:0">NVIDIA GPU 0</option><option value="cpu">CPU</option></select></div>
+              <div class="field"><label for="seed">RANDOM SEED</label><input id="seed" type="number" value="11" min="0" max="2147483647"></div>
+            </div>
+            <div class="two">
+              <div class="field"><label for="totalSteps">TOTAL ENVIRONMENT STEPS</label><input id="totalSteps" type="number" value="1000000" min="256" max="50000000" step="256"><small>1M recommended per training seed.</small></div>
+              <div class="field"><label for="rolloutSteps">ROLLOUT HORIZON</label><select id="rolloutSteps"><option>128</option><option selected>256</option><option>512</option><option>1024</option></select></div>
+            </div>
+            <div class="field"><label for="episodeSteps">EPISODE HORIZON</label><select id="episodeSteps"><option>250</option><option selected>500</option><option>1000</option></select></div>
+            <div class="field" id="riskField"><label for="riskCheckpoint">RISK MODEL CHECKPOINT</label><input id="riskCheckpoint" type="text" value="artifacts/standard_cc4/cc4_risk.pt" placeholder="artifacts/.../cc4_risk.pt"><small>Required for RA-HMAPPO. Use the separately trained and calibrated risk model.</small></div>
+            <div class="field"><label for="runName">RUN LABEL</label><input id="runName" type="text" value="cc4-risk-aware-main" maxlength="48"></div>
+            <div class="estimate"><span>COMPUTE PROFILE</span><b id="computeProfile">GPU auto · 1M steps · 256 rollout</b><small>Training time depends on GPU, simulator CPU load and rollout configuration.</small></div>
+            <button class="primary-btn" id="startBtn" type="submit">▶ &nbsp; Start training</button>
+            <div class="button-row"><button class="control-btn" type="button" id="pauseBtn" disabled>Ⅱ Pause</button><button class="control-btn" type="button" id="resumeBtn" disabled>▶ Resume</button><button class="danger-btn" type="button" id="stopBtn" disabled>■ Stop</button></div>
+            <p class="form-foot">Runs execute on the connected server. A rolling checkpoint is written after every PPO update.</p>
+          </form>
+        </article>
+
+        <div class="right-stack">
+          <article class="panel progress-panel">
+            <div class="panel-title"><div><span class="eyebrow">LIVE TRAINING</span><h2>Run progress</h2></div><span class="tag" id="progressState">IDLE</span></div>
+            <div class="progress-number"><strong id="percent">0.0%</strong><span id="stepFraction">0 / 0 steps</span></div>
+            <div class="bar"><i id="progressBar"></i></div>
+            <div class="progress-meta"><span id="progressElapsed">Elapsed —</span><span id="progressEta">ETA —</span></div>
+            <div class="mini-grid"><div><small>STEPS / SEC</small><b id="throughput">—</b></div><div><small>ROLLOUT UPDATES</small><b id="updates">0</b></div><div><small>LAST UPDATE</small><b id="lastUpdate">—</b></div></div>
+            <div class="progress-note" id="progressNote">Start a run to stream progress from the GPU server.</div>
+          </article>
+          <article class="panel model-panel" id="model">
+            <div class="panel-title"><div><span class="eyebrow">MODEL INSPECTOR</span><h2>Model & architecture</h2></div><span class="tag" id="modelState">NO CHECKPOINT</span></div>
+            <div class="model-name" id="modelName">Waiting for first checkpoint</div>
+            <p class="model-desc" id="modelDesc">The live architecture and parameter count will be read from the rolling checkpoint.</p>
+            <div class="spec-grid">
+              <div><small>AGENTS</small><b id="modelAgents">—</b></div><div><small>OBSERVATION DIM</small><b id="modelObs">—</b></div>
+              <div><small>GLOBAL STATE</small><b id="modelStateDim">—</b></div><div><small>PARAMETERS</small><b id="modelParams">—</b></div>
+            </div>
+            <div class="architecture" id="architecture">
+              <div class="arch-node">Local observations + risk score</div><span>↓</span><div class="arch-node highlight">Manager policy · high-level task</div><span>↓</span><div class="arch-node">Task-conditioned worker · legal CC4 actions</div><span>↓</span><div class="arch-node critic">Centralized team critic · CTDE</div>
+            </div>
+            <details class="config-details"><summary>Training hyperparameters</summary><pre id="hyperparameters">No model configuration loaded.</pre></details>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel telemetry-panel" id="telemetry">
+        <div class="panel-title"><div><span class="eyebrow">OPTIMIZATION TELEMETRY</span><h2>Training diagnostics</h2><p>Metrics are recorded after every rollout/update cycle.</p></div><span class="tag">LIVE JSONL</span></div>
+        <div class="chart-grid">
+          <div class="chart-card"><div class="chart-head"><b>Actor / policy loss</b><span id="actorLoss">—</span></div><svg id="actorChart" viewBox="0 0 520 130" preserveAspectRatio="none"><path class="chart-gridline" d="M0 20H520 M0 65H520 M0 110H520"/><path class="chart-line violet" d=""/></svg><small>Loss values from PPO policy updates; lower is not always better.</small></div>
+          <div class="chart-card"><div class="chart-head"><b>Critic / value loss</b><span id="criticLoss">—</span></div><svg id="criticChart" viewBox="0 0 520 130" preserveAspectRatio="none"><path class="chart-gridline" d="M0 20H520 M0 65H520 M0 110H520"/><path class="chart-line teal" d=""/></svg><small>Centralized value-function regression loss where applicable.</small></div>
+        </div>
+        <div class="metric-strip"><div><small>EPISODE RETURN (LAST ROLLOUT)</small><b id="episodeReturn">—</b></div><div><small>POLICY ENTROPY</small><b id="entropy">—</b></div><div><small>GPU MEMORY ALLOCATED</small><b id="gpuAllocated">—</b></div><div><small>GPU MEMORY RESERVED</small><b id="gpuReserved">—</b></div></div>
+      </section>
+
+      <section class="layout lower">
+        <article class="panel" id="checkpoints">
+          <div class="panel-title"><div><span class="eyebrow">MODEL ARTIFACTS</span><h2>Checkpoints</h2><p>Rolling and final model weights saved on the server.</p></div><button class="outline-btn" id="refreshCheckpoints">Refresh</button></div>
+          <div class="table-wrap"><table><thead><tr><th>FILE</th><th>SIZE</th><th>UPDATED</th><th>TYPE</th><th></th></tr></thead><tbody id="checkpointRows"><tr><td colspan="5" class="empty">Authenticate to load checkpoint inventory.</td></tr></tbody></table></div>
+        </article>
+        <article class="panel" id="system">
+          <div class="panel-title"><div><span class="eyebrow">SERVER HEALTH</span><h2>GPU & environment</h2></div><button class="outline-btn" id="refreshSystem">Refresh</button></div>
+          <div class="system-list" id="systemInfo"><div class="system-row"><span>CUDA</span><b>—</b></div><div class="system-row"><span>PyTorch</span><b>—</b></div><div class="system-row"><span>CC4 source</span><b>—</b></div></div>
+        </article>
+      </section>
+
+      <section class="panel logs-panel">
+        <div class="panel-title"><div><span class="eyebrow">PROCESS OUTPUT</span><h2>Training logs</h2><p>Live stdout and error output from the training process.</p></div><button class="outline-btn" id="clearLogs">Clear view</button></div>
+        <pre id="logOutput" class="logs">Waiting for server authentication…</pre>
+      </section>
+      <footer>Sentinel MARL Research Console <span>GPU TRAINING CONTROL PLANE · CC4</span><span>Research branch · Never exposes a public unauthenticated endpoint</span></footer>
+    </div>
   </main>
 </div>
+<div class="auth-overlay" id="authOverlay"><div class="auth-card"><div class="brand-icon">S</div><h2>Connect to training server</h2><p>Enter the dashboard bearer token configured on the GPU server. The token is kept in this browser session only.</p><label for="apiToken">DASHBOARD ACCESS TOKEN</label><input id="apiToken" type="password" autocomplete="current-password" placeholder="Paste server token"><button class="primary-btn" id="connectBtn">Connect securely</button><small id="authError"></small></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="app.js"></script>
+<script src="/assets/app.js"></script>
 </body></html>
