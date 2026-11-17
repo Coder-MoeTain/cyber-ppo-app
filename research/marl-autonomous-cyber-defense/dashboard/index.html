@@ -78,7 +78,7 @@
             <p class="model-desc" id="modelDesc">The live architecture and parameter count will be read from the rolling checkpoint.</p>
             <div class="spec-grid">
               <div><small>AGENTS</small><b id="modelAgents">—</b></div><div><small>OBSERVATION DIM</small><b id="modelObs">—</b></div>
-              <div><small>GLOBAL STATE</small><b id="modelStateDim">—</b></div><div><small>PARAMETERS</small><b id="modelParams">—</b></div>
+              <div><small>GLOBAL STATE</small><b id="modelStateDim">—</b></div><div><small>ACTION DIM</small><b id="modelAction">—</b></div><div><small>PARAMETERS</small><b id="modelParams">—</b></div>
             </div>
             <div class="architecture" id="architecture">
               <div class="arch-node">Local observations + risk score</div><span>↓</span><div class="arch-node highlight">Manager policy · high-level task</div><span>↓</span><div class="arch-node">Task-conditioned worker · legal CC4 actions</div><span>↓</span><div class="arch-node critic">Centralized team critic · CTDE</div>
