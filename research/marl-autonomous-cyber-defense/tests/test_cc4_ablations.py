@@ -17,3 +17,4 @@ def test_ablation_analysis_cli_help_loads():
     assert result.returncode == 0, result.stderr
     assert "--full-glob" in result.stdout
     assert "--no-risk-glob" in result.stdout
+    assert "--risk-rule-glob" in result.stdout
