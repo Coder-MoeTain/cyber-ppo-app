@@ -1,39 +1,32 @@
 # Risk-Aware Hierarchical Multi-Agent Cyber Defense
 
-Research scaffold for **Risk-Aware Hierarchical Multi-Agent Reinforcement Learning for Autonomous Cyber Defense in Dynamic Enterprise Networks**.
+Research implementation for **Risk-Aware Hierarchical Multi-Agent Reinforcement Learning for Coordinated Autonomous Cyber Defense in Enterprise Networks**.
 
-## Scope
-- Environment target: CybORG / CAGE enterprise scenario.
-- Baselines: rule-based, PPO, Independent PPO, MAPPO.
-- Proposed method: risk-aware hierarchical coordination (RA-HMAPPO; provisional).
-- Training paradigm: centralized training, decentralized execution (CTDE).
+## v0.3.0 status
+- CTDE MAPPO trainer with per-agent actors, centralized critic, dynamic action masking and GAE boundary handling.
+- CybORG / CAGE Challenge 4 adapter boundary and validation script.
+- MAPPO mock smoke script, statistical utilities, tests and publication-readiness gates.
+- Responsive Sentinel MARL research dashboard preview in `dashboard/`.
 
-## Current status
-This branch contains the Phase 1 foundation, a mock enterprise environment for software smoke tests, risk scoring, a deterministic task coordinator baseline, PyTorch actor/centralized-critic networks, PPO loss/GAE primitives, configuration, tests, and research protocols.
-
-**Important:** the mock environment is not CybORG and cannot support claims about realistic cyber-defense performance. The CybORG adapter intentionally fails closed until its mappings are validated against a pinned CybORG commit. MAPPO training orchestration and RA-HMAPPO's learned hierarchy remain future implementation milestones.
+**Validation boundary:** unit tests and smoke training use the mock environment. The live CybORG/CAGE Challenge 4 simulator has not yet been validated. Do not treat mock returns as benchmark results. Pin the exact CybORG commit and run `python scripts/validate_cyborg.py` before simulator experiments.
 
 ## Quick start
-Python 3.10–3.12:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-python scripts/phase1_smoke_test.py
-pytest
+pytest -q
+python scripts/train_mock_mappo.py --steps 8 --rollout-steps 4 --seed 42
 ```
 
-Official CybORG: https://github.com/cage-challenge/CybORG
+## Dashboard preview
+```bash
+cd dashboard
+python -m http.server 8080
+```
+Open http://localhost:8080. The UI uses illustrative values; the mock-run button does not start model training and live API integration is pending.
 
-Record the exact CybORG commit, Python version, dependencies, scenario configuration, and seeds before experiments.
+## Publication gates
+See [docs/PUBLICATION_READINESS.md](docs/PUBLICATION_READINESS.md). Learned risk-aware hierarchy, Independent PPO baseline, live CybORG experiments, multi-seed comparisons, ablations and paper evidence remain outstanding.
 
-## Research milestones
-1. Validate official CybORG enterprise scenario and document observations/actions.
-2. Implement version-specific observation/action adapters and multi-agent rollouts.
-3. Train PPO and Independent PPO baselines.
-4. Train standard MAPPO with centralized critic.
-5. Implement learned high-level task allocation and risk-conditioned low-level policies.
-6. Run matched comparisons, ablations, generalization, and statistical analysis.
-
-## Safety
-Use only CybORG, synthetic data, or isolated cyber ranges with explicit authorization. No real-world attack execution or production deployment is included.
+Official simulator: https://github.com/cage-challenge/CybORG
