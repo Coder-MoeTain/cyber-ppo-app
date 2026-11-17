@@ -19,6 +19,8 @@ been produced in this release.
   metrics; data collection uses simulator ground truth only for labels.
 - [x] Basic alert-guided, action-mask-aware heuristic baseline; not an exact
   reproduction of a published competition submission.
+- [ ] Strengthen the heuristic baseline to represent the challenge literature;
+  the current Analyse/Sleep policy is preliminary only.
 - [x] Official CAGE Challenge 4 source revision pinned in `configs/cc4.lock.yaml`.
 - [ ] Pass official upstream CC4 tests and live adapter reset/seed/step validation.
 - [ ] Audit privileged risk-label extraction against the pinned simulator.
