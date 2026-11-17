@@ -16,17 +16,23 @@ been produced in this release.
 - [x] Six semantic CC4 manager options with task-specific worker action masks;
   unit tests and live smoke checks added.
 - [x] Independent PPO baseline with decentralized critics; mock tests added.
-- [x] Offline-supervised risk-estimation pipeline with held-out calibration
-  metrics; data collection uses simulator ground truth only for labels.
+- [x] Offline-supervised risk-estimation pipeline with privileged labels isolated
+  to offline dataset creation and local-observation inference.
+- [x] Risk-model fitting, model-selection, temperature-calibration and final-test
+  seed partitions are now separate; split overlap is rejected.
+- [x] Final risk-model test metrics are saved separately from model-selection
+  and calibration metrics.
+- [x] Analysis rejects incomplete default matrices (10 training seeds x 100
+  held-out evaluation seeds), duplicate pairs and mismatched method seeds.
 - [x] Team UC-inspired stateful, action-mask-aware heuristic and simple
   alert-only comparator; neither is an exact competition-source reproduction.
-- [ ] Validate the Team UC-inspired implementation against the published
-  policy details and report its missing malicious-file features.
+- [ ] Validate the Team UC-inspired implementation against published policy
+  details and report its missing malicious-file features.
 - [x] Official CAGE Challenge 4 source revision pinned in `configs/cc4.lock.yaml`.
 - [x] Real CC4 adapter reset, same-seed replay, action-mask and one-step smoke validation.
 - [x] Real CC4 offline risk-dataset collection smoke and RA-HMAPPO rollout/update smoke.
 - [ ] Pass the official upstream CC4 test suite.
-- [ ] Audit privileged risk-label semantics and held-out risk-model calibration.
+- [ ] Audit privileged risk-label semantics and independently review test-set calibration.
 - [ ] Empirically validate task ontology and ablate alternative option mappings.
 - [ ] Validate reward aggregation and episode-boundary semantics on real CC4.
 - [ ] Complete matched-budget training and evaluation for heuristic, IPPO,
@@ -34,23 +40,26 @@ been produced in this release.
 
 ## Experimental and manuscript
 
-- [x] Additional regression tests for paired result matrices, duplicate/missing seed pairs, heuristic pairing, and deterministic two-level bootstrap added; CI execution pending.
-- [x] Manuscript structure drafted with explicit evidence-pending sections; it is not a complete submission manuscript until results, related-work citations, discussion, and conclusions are completed.
+- [x] Regression tests for paired result matrices, duplicate/missing seed pairs,
+  heuristic pairing, deterministic bootstrap, and risk-split separation added;
+  execution in CI is still pending.
+- [x] Manuscript structure drafted with explicit evidence-pending sections; it
+  is not a complete submission manuscript until results, related-work citations,
+  discussion, and conclusions are completed.
 - [x] Experiment execution and artifact-preservation guide added.
 
-- [ ] Freeze hypotheses, primary endpoints and disjoint scenario seed/config splits.
-- [ ] Train risk model on training seeds and report held-out calibration,
-  AUROC/AUPRC, Brier score and ECE.
-- [ ] Run at least 10 independent training seeds where feasible.
-- [ ] Evaluate at least 100 episodes per method and scenario where feasible,
-  including standard CC4 and predeclared generalization shifts.
+- [ ] Freeze hypotheses, primary endpoints, scenario configs and exclusions.
+- [ ] Execute the full risk-data collection and report final test metrics.
+- [ ] Run at least 10 independent training seeds.
+- [ ] Evaluate at least 100 episodes per method and scenario, including
+  predeclared generalization shifts.
 - [ ] Report team/per-agent reward, red-session outcomes, availability,
   invalid-action rate, unnecessary intervention, latency and overhead.
 - [ ] Run risk-input, hierarchy, task-mapping and reward-aggregation ablations.
 - [ ] Archive raw episode records, configs, checkpoints, source provenance,
   statistical scripts and environment logs.
-- [ ] Complete current novelty review, manuscript, verified citations,
-  artifact license and clean-machine reproduction.
+- [ ] Complete novelty review, manuscript, verified citations, artifact license
+  and clean-machine reproduction.
 
 Do not present mock-environment returns as CybORG results. A passing simulator
 smoke test is not a benchmark experiment and is not evidence of superiority.
