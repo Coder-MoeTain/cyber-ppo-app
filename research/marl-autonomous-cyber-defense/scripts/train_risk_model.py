@@ -1,4 +1,4 @@
-"""Train and calibrate the CC4 local-observation risk estimator."""
+"""Train, calibrate, and independently test the CC4 local-observation risk estimator."""
 import argparse
 import json
 from pathlib import Path
@@ -9,10 +9,69 @@ from torch import nn
 from autocd.risk_model import RiskEstimatorNet, binary_metrics
 
 
+def load_dataset(path, agent_names=None, observation_dim=None):
+    data = np.load(path, allow_pickle=False)
+    names = data["agent_names"].tolist()
+    if agent_names is not None and names != agent_names:
+        raise ValueError(f"Agent order mismatch in {path}")
+    if data["observations"].ndim != 2 or data["observations"].shape[1] == 0:
+        raise ValueError(f"Observations in {path} must be a non-empty 2-D matrix")
+    if observation_dim is not None and data["observations"].shape[1] != observation_dim:
+        raise ValueError(f"Observation dimension mismatch in {path}")
+    if len(data["labels"]) == 0 or len(data["labels"]) != len(data["observations"]):
+        raise ValueError(f"Labels in {path} are empty or misaligned")
+    if not np.isfinite(data["observations"]).all():
+        raise ValueError(f"Observations in {path} contain NaN or infinity")
+    if not np.isin(data["labels"], [0, 1]).all():
+        raise ValueError(f"Labels in {path} must be binary")
+    if np.any((data["agent_ids"] < 0) | (data["agent_ids"] >= len(names))):
+        raise ValueError(f"agent_ids outside configured range in {path}")
+    seeds = set(map(int, data["seeds"].tolist()))
+    episode_ids = set(map(int, data["episode_ids"].tolist()))
+    if not seeds or not episode_ids or not episode_ids.issubset(seeds):
+        raise ValueError(f"Missing or inconsistent seed provenance in {path}")
+    return data, names, seeds
+
+
+def assert_disjoint_splits(named_splits):
+    for i, (left_name, left) in enumerate(named_splits):
+        for right_name, right in named_splits[i + 1:]:
+            overlap = left & right
+            if overlap:
+                raise ValueError(
+                    f"{left_name} and {right_name} episode seeds overlap: {sorted(overlap)}"
+                )
+
+
+def fit_temperature(logits, labels):
+    logits = np.asarray(logits, dtype=np.float64).reshape(-1)
+    labels = np.asarray(labels, dtype=np.int64).reshape(-1)
+    if logits.size != labels.size or logits.size == 0 or not np.isfinite(logits).all():
+        raise ValueError("Calibration logits and labels must be finite, non-empty and aligned")
+    if not np.isin(labels, [0, 1]).all() or np.unique(labels).size != 2:
+        raise ValueError("Calibration split must contain both binary classes")
+    temperatures = np.geomspace(0.25, 4.0, 161)
+    losses = [
+        float(np.mean(np.logaddexp(0.0, logits / temp) - labels * (logits / temp)))
+        for temp in temperatures
+    ]
+    return float(temperatures[int(np.argmin(losses))])
+
+
+def probabilities(logits, temperature):
+    z = np.asarray(logits, dtype=np.float64) / float(temperature)
+    return 1.0 / (1.0 + np.exp(-np.clip(z, -60.0, 60.0)))
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--train-data", required=True)
-    p.add_argument("--validation-data", required=True)
+    p.add_argument("--validation-data", required=True,
+                   help="Model-selection split; not used for temperature fitting or final metrics.")
+    p.add_argument("--calibration-data", required=True,
+                   help="Disjoint split used only to fit scalar temperature.")
+    p.add_argument("--test-data", required=True,
+                   help="Disjoint final risk-estimator evaluation split.")
     p.add_argument("--output", required=True)
     p.add_argument("--epochs", type=int, default=40)
     p.add_argument("--batch-size", type=int, default=256)
@@ -23,26 +82,20 @@ def main():
         raise ValueError("epochs and batch-size must be positive")
     torch.manual_seed(args.seed)
 
-    train = np.load(args.train_data, allow_pickle=False)
-    val = np.load(args.validation_data, allow_pickle=False)
-    names = train["agent_names"].tolist()
-    if names != val["agent_names"].tolist():
-        raise ValueError("Train and validation agent order mismatch")
-    if set(train["episode_ids"].tolist()) & set(val["episode_ids"].tolist()):
-        raise ValueError("Train and validation episode seeds overlap")
-
-    if train["observations"].ndim != 2 or val["observations"].ndim != 2:
-        raise ValueError("observations must be 2-D arrays")
-    if train["observations"].shape[1] != val["observations"].shape[1]:
-        raise ValueError("Train and validation observation dimensions differ")
-    if len(val["labels"]) == 0 or len(train["labels"]) == 0:
-        raise ValueError("Train and validation datasets must be non-empty")
-    if not np.isfinite(train["observations"]).all() or not np.isfinite(val["observations"]).all():
-        raise ValueError("Observations contain NaN or infinity")
-    if np.any((train["agent_ids"] < 0) | (train["agent_ids"] >= len(names))) or np.any(
-        (val["agent_ids"] < 0) | (val["agent_ids"] >= len(names))
-    ):
-        raise ValueError("agent_ids outside configured agent range")
+    train, names, train_seeds = load_dataset(args.train_data)
+    val, _, val_seeds = load_dataset(args.validation_data, names, train["observations"].shape[1])
+    calibration, _, calibration_seeds = load_dataset(
+        args.calibration_data, names, train["observations"].shape[1]
+    )
+    test, _, test_seeds = load_dataset(args.test_data, names, train["observations"].shape[1])
+    assert_disjoint_splits([
+        ("train", train_seeds), ("validation", val_seeds),
+        ("calibration", calibration_seeds), ("test", test_seeds),
+    ])
+    if np.unique(train["labels"]).size != 2 or np.unique(val["labels"]).size != 2:
+        raise ValueError("Train and validation data must each contain both classes")
+    if np.unique(calibration["labels"]).size != 2 or np.unique(test["labels"]).size != 2:
+        raise ValueError("Calibration and final test data must each contain both classes")
 
     X = torch.tensor(train["observations"], dtype=torch.float32, device=args.device)
     A = torch.tensor(train["agent_ids"], dtype=torch.long, device=args.device)
@@ -50,18 +103,23 @@ def main():
     Xv = torch.tensor(val["observations"], dtype=torch.float32, device=args.device)
     Av = torch.tensor(val["agent_ids"], dtype=torch.long, device=args.device)
     Yv = torch.tensor(val["labels"], dtype=torch.float32, device=args.device)
+    Xc = torch.tensor(calibration["observations"], dtype=torch.float32, device=args.device)
+    Ac = torch.tensor(calibration["agent_ids"], dtype=torch.long, device=args.device)
+    Xt = torch.tensor(test["observations"], dtype=torch.float32, device=args.device)
+    At = torch.tensor(test["agent_ids"], dtype=torch.long, device=args.device)
+    Yt = test["labels"].astype(np.int64)
+
     positives = float(Y.sum().item())
     negatives = float(Y.numel() - positives)
     if positives == 0 or negatives == 0:
         raise ValueError("Training data must contain both positive and negative labels")
-
     model = RiskEstimatorNet(X.shape[1], len(names)).to(args.device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
     loss_fn = nn.BCEWithLogitsLoss(
         pos_weight=torch.tensor([negatives / positives], device=args.device)
     )
     best_loss, best_state, stale = float("inf"), None, 0
-    for epoch in range(args.epochs):
+    for _ in range(args.epochs):
         model.train()
         order = torch.randperm(X.shape[0], device=args.device)
         for start in range(0, X.shape[0], args.batch_size):
@@ -81,34 +139,44 @@ def main():
             stale += 1
         if stale >= 8:
             break
-
+    if best_state is None:
+        raise RuntimeError("No valid model checkpoint selected")
     model.load_state_dict(best_state)
     model.eval()
     with torch.no_grad():
-        logits = model(Xv, Av).cpu().numpy()
-    yv = val["labels"].astype(np.int64)
-    temperatures = np.geomspace(0.25, 4.0, 81)
-    def bce(temp):
-        z = logits / temp
-        return float(np.mean(np.logaddexp(0.0, z) - yv * z))
-    temperature = float(min(temperatures, key=bce))
-    probs = 1.0 / (1.0 + np.exp(-logits / temperature))
-    metrics = binary_metrics(yv, probs)
+        calibration_logits = model(Xc, Ac).cpu().numpy()
+        test_logits = model(Xt, At).cpu().numpy()
+    temperature = fit_temperature(calibration_logits, calibration["labels"])
+    test_probs = probabilities(test_logits, temperature)
+    test_metrics = binary_metrics(Yt, test_probs)
+
     checkpoint = {
         "state_dict": model.state_dict(),
         "observation_dim": int(X.shape[1]),
         "hidden_dim": 128,
         "agent_names": names,
         "temperature": temperature,
-        "validation_metrics": metrics,
-        "train_episode_ids": train["episode_ids"].tolist(),
-        "validation_episode_ids": val["episode_ids"].tolist(),
+        "validation_bce": best_loss,
+        "calibration_temperature_fit": "disjoint calibration split",
+        "test_metrics": test_metrics,
+        "train_episode_ids": sorted(train_seeds),
+        "validation_episode_ids": sorted(val_seeds),
+        "calibration_episode_ids": sorted(calibration_seeds),
+        "test_episode_ids": sorted(test_seeds),
         "seed": args.seed,
     }
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     torch.save(checkpoint, args.output)
-    print(json.dumps({"output": args.output, "temperature": temperature,
-                      "best_validation_bce": best_loss, "metrics": metrics}, indent=2))
+    report = {
+        "output": args.output, "temperature": temperature,
+        "best_validation_bce": best_loss, "calibration_samples": int(len(calibration["labels"])),
+        "test_samples": int(len(Yt)), "test_positive_rate": float(np.mean(Yt)),
+        "test_metrics": test_metrics,
+        "split_seeds": {"train": sorted(train_seeds), "validation": sorted(val_seeds),
+                        "calibration": sorted(calibration_seeds), "test": sorted(test_seeds)},
+    }
+    Path(args.output).with_suffix(".metrics.json").write_text(json.dumps(report, indent=2))
+    print(json.dumps(report, indent=2))
 
 
 if __name__ == "__main__":
