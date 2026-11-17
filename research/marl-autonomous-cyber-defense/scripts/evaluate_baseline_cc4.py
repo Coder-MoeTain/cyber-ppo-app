@@ -99,7 +99,8 @@ def main():
                     break
 
             records.append({
-                "seed": int(seed), "steps": steps,
+                "seed": int(seed), "training_seed": int(checkpoint["seed"]) if checkpoint is not None else None,
+                "steps": steps,
                 "team_reward_sum": float(sum(totals.values())),
                 "per_agent_reward": totals,
                 "red_session_hosts_by_agent": {
