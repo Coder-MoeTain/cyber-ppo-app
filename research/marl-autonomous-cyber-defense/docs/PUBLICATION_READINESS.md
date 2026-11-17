@@ -25,6 +25,7 @@ been produced in this release.
 - [x] CI workflow definition added for Python 3.10/3.11 unit, regression and compile checks; successful CI execution remains pending.
 - [x] Analysis rejects incomplete default matrices (10 training seeds x 100
   held-out evaluation seeds), duplicate pairs and mismatched method seeds.
+- [x] SHA-256 artifact manifest creation and verification utility added and wired into both benchmark runners.
 - [x] Matched-budget ablation runner and paired analysis added for risk removal,
   semantic task-mask removal and sum-versus-mean reward aggregation.
 - [x] Team UC-inspired stateful, action-mask-aware heuristic and simple
