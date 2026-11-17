@@ -57,9 +57,11 @@ show statistically and practically meaningful gains over strong baselines.
 
 ## Minimum baseline and evaluation discipline
 
-Include a documented reimplementation of a strong CC4 heuristic baseline;
-do not describe it as an exact reproduction of a competition submission
-unless the original source and settings are available. Include Independent
+A strong CC4 heuristic comparison is mandatory. The repository's current
+alert-guided Analyse/Sleep policy is only a preliminary baseline; strengthen
+and validate it against the published challenge analysis. Do not describe it
+as an exact reproduction of a competition submission unless original source
+and settings are available. Include Independent
 PPO, MAPPO, and the proposed RA-HMAPPO under matched training interactions,
 scenario distributions, action masks, and evaluation budgets.
 
