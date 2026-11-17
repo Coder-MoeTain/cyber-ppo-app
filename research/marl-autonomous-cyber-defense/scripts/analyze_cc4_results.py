@@ -127,6 +127,7 @@ def main():
     p.add_argument("--ippo-glob", required=True)
     p.add_argument("--mappo-glob", required=True)
     p.add_argument("--heuristic-file", required=True)
+    p.add_argument("--alert-only-file", required=True)
     p.add_argument("--output", required=True)
     p.add_argument("--bootstrap", type=int, default=10000)
     p.add_argument("--seed", type=int, default=1234)
@@ -142,10 +143,12 @@ def main():
     ippo_records = load_records(args.ippo_glob)
     mappo_records = load_records(args.mappo_glob)
     heuristic_records = load_records(args.heuristic_file, require_training_seed=False)
+    alert_only_records = load_records(args.alert_only_file, require_training_seed=False)
     ra_train, eval_seeds, ra = model_matrix(ra_records)
     ippo_train, ippo_eval, ippo = model_matrix(ippo_records)
     mappo_train, mappo_eval, mappo = model_matrix(mappo_records)
     h_seeds, h = heuristic_vector(heuristic_records)
+    alert_seeds, alert_only = heuristic_vector(alert_only_records)
     validate_expected_matrix(
         ra_train, eval_seeds,
         expected_training=args.expected_training_seeds,
@@ -153,7 +156,8 @@ def main():
     )
     if ra_train != ippo_train or ra_train != mappo_train:
         raise ValueError("RA-HMAPPO, IPPO and MAPPO must use the same training seeds")
-    if eval_seeds != ippo_eval or eval_seeds != mappo_eval or eval_seeds != h_seeds:
+    if (eval_seeds != ippo_eval or eval_seeds != mappo_eval or eval_seeds != h_seeds
+            or eval_seeds != alert_seeds):
         raise ValueError("All methods must use exactly the same held-out evaluation seeds")
 
     comparisons = {}
@@ -190,6 +194,21 @@ def main():
     }
     p_values.append(heuristic_test["p_value"])
     labels.append("RA-HMAPPO_vs_heuristic")
+
+    alert_only_test = paired_permutation_test(ra_eval_mean, alert_only, seed=args.seed)
+    alert_only_ci = model_vs_heuristic_bootstrap(
+        ra, alert_only, n_boot=args.bootstrap, seed=args.seed
+    )
+    alert_only_diff = ra_eval_mean - alert_only
+    comparisons["RA-HMAPPO_vs_alert_only"] = {
+        **alert_only_ci,
+        "paired_evaluation_seed_permutation": alert_only_test,
+        "cohens_dz": float(
+            alert_only_diff.mean() / (alert_only_diff.std(ddof=1) + 1e-12)
+        ),
+    }
+    p_values.append(alert_only_test["p_value"])
+    labels.append("RA-HMAPPO_vs_alert_only")
 
     adjusted = holm_bonferroni(p_values)
     for name, p_adj in zip(labels, adjusted):
@@ -240,6 +259,7 @@ def main():
             "IPPO": summary(ippo_records),
             "MAPPO": summary(mappo_records),
             "heuristic": summary(heuristic_records),
+            "alert_only": summary(alert_only_records),
         },
         "planned_comparisons": comparisons,
         "caveats": [
