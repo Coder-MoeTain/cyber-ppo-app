@@ -30,4 +30,4 @@ jobs:
       - name: Mock environment smoke test
         run: python scripts/phase1_smoke_test.py
       - name: Mock MAPPO training smoke test (not CybORG)
-        run: python scripts/train_mock_mappo.py --episodes 2 --seed 42
+        run: python scripts/train_mock_mappo.py --steps 8 --rollout-steps 4 --seed 42
