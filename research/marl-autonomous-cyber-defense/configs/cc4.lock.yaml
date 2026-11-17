@@ -1,0 +1,21 @@
+benchmark:
+  name: CAGE Challenge 4
+  repository: https://github.com/cage-challenge/cage-challenge-4
+  commit: 8c3c50ca54b176c2de199847944e8dcc035497e3
+  cyborg_version: "4.0"
+  commit_date: "2025-10-27"
+  python_recommended: "3.10"
+  wrapper:
+    observation: CybORG.Agents.Wrappers.BlueFlatWrapper
+    action: CybORG.Agents.Wrappers.BlueFixedActionWrapper
+    pad_spaces: true
+  agents:
+    - blue_agent_0
+    - blue_agent_1
+    - blue_agent_2
+    - blue_agent_3
+    - blue_agent_4
+validation:
+  command: python scripts/validate_cyborg.py --one-step --verify-seed
+  upstream_tests: vendor/CybORG/CybORG/Tests/test_cc4
+  note: Pin this exact source revision for all experiments; do not silently track main.
