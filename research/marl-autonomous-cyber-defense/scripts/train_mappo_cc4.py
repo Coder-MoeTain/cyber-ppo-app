@@ -3,6 +3,7 @@ import argparse
 from dataclasses import asdict
 from pathlib import Path
 import torch
+import time
 
 from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
 from autocd.algorithms.mappo_trainer import MAPPOConfig, MAPPOTrainer
@@ -27,7 +28,9 @@ def main():
         trainer = MAPPOTrainer(
             env, cfg, seed=args.seed, device=args.device, reward_aggregation="sum"
         )
+        training_start = time.perf_counter()
         history = trainer.train(args.steps, args.rollout_steps)
+        training_wall_seconds = time.perf_counter() - training_start
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
         torch.save({
@@ -42,6 +45,8 @@ def main():
             "environment": "CAGE-Challenge-4",
             "cyborg_version": "4.0",
             "training_steps": args.steps,
+            "training_wall_seconds": training_wall_seconds,
+            "training_steps_per_second": args.steps / max(training_wall_seconds, 1e-9),
             "reward_aggregation": "sum",
         }, output)
         torch.save(history, output.with_suffix(".history.pt"))
