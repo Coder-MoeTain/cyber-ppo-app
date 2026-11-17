@@ -28,7 +28,7 @@ mkdir -p "$OUT" "$RESULTS" data
 "$PYTHON" scripts/train_risk_model.py --train-data data/cc4_risk_train.npz \
   --validation-data data/cc4_risk_validation.npz \
   --calibration-data data/cc4_risk_calibration.npz \
-  --test-data data/cc4_risk_test.npz --device "$DEVICE" --output "$OUT/cc4_risk.pt"
+  --test-data data/cc4_risk_test.npz --device "$DEVICE" --profile-inference --output "$OUT/cc4_risk.pt"
 
 for seed in "${TRAIN_SEEDS[@]}"; do
   "$PYTHON" scripts/train_ra_hmappo_cc4.py --risk-checkpoint "$OUT/cc4_risk.pt" \
@@ -47,13 +47,13 @@ done
 for seed in "${TRAIN_SEEDS[@]}"; do
   "$PYTHON" scripts/evaluate_ra_hmappo_cc4.py --checkpoint "$OUT/ra_hmappo_seed${seed}.pt" \
     --risk-checkpoint "$OUT/cc4_risk.pt" --seeds "${EVAL_SEEDS[@]}" \
-    --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --output "$RESULTS/ra_hmappo_seed${seed}.jsonl"
+    --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --profile-inference --output "$RESULTS/ra_hmappo_seed${seed}.jsonl"
   "$PYTHON" scripts/evaluate_baseline_cc4.py --baseline ippo \
     --checkpoint "$OUT/ippo_seed${seed}.pt" --seeds "${EVAL_SEEDS[@]}" \
-    --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --output "$RESULTS/ippo_seed${seed}.jsonl"
+    --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --profile-inference --output "$RESULTS/ippo_seed${seed}.jsonl"
   "$PYTHON" scripts/evaluate_baseline_cc4.py --baseline mappo \
     --checkpoint "$OUT/mappo_seed${seed}.pt" --seeds "${EVAL_SEEDS[@]}" \
-    --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --output "$RESULTS/mappo_seed${seed}.jsonl"
+    --episode-steps "$EPISODE_STEPS" --device "$DEVICE" --profile-inference --output "$RESULTS/mappo_seed${seed}.jsonl"
 done
 
 "$PYTHON" scripts/analyze_cc4_results.py \
