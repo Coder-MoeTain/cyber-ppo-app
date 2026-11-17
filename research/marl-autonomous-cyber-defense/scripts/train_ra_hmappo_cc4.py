@@ -4,6 +4,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 import torch
+import time
 
 from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
 from autocd.algorithms.hierarchical_trainer import RAHMAPPOConfig, RiskAwareHierarchicalTrainer
@@ -46,7 +47,9 @@ def main():
             env, risk_fn, config, seed=args.seed, device=args.device,
             reward_aggregation=args.reward_aggregation, task_action_mapper=task_mapper,
         )
+        training_start = time.perf_counter()
         history = trainer.train(args.steps, args.rollout_steps)
+        training_wall_seconds = time.perf_counter() - training_start
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
         torch.save({
@@ -64,6 +67,8 @@ def main():
             "environment": "CAGE-Challenge-4",
             "cyborg_version": "4.0",
             "training_steps": args.steps,
+            "training_wall_seconds": training_wall_seconds,
+            "training_steps_per_second": args.steps / max(training_wall_seconds, 1e-9),
         }, output)
         output.with_suffix(".history.json").write_text(json.dumps(history, indent=2))
         print(json.dumps({
