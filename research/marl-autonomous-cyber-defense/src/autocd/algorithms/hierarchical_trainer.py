@@ -60,6 +60,7 @@ class RiskAwareHierarchicalTrainer:
         self.reward_aggregation = reward_aggregation
         np.random.seed(self.seed)
         torch.manual_seed(self.seed)
+        self.generator = torch.Generator(device=self.device).manual_seed(self.seed)
 
         observations, infos = self.env.reset(seed=self.seed)
         self.agents = tuple(self.env.possible_agents)
@@ -132,18 +133,24 @@ class RiskAwareHierarchicalTrainer:
                     info = self._infos.get(agent, {})
                     risk = self._risk(agent, obs, info)
                     mask = self._action_mask(agent)
-                    result = self.model.act(
-                        agent,
-                        torch.as_tensor(obs, dtype=torch.float32, device=self.device),
-                        torch.tensor([risk], dtype=torch.float32, device=self.device),
-                        action_mask=torch.as_tensor(mask, dtype=torch.bool, device=self.device),
+                    obs_tensor = torch.as_tensor(obs, dtype=torch.float32, device=self.device)
+                    risk_tensor = torch.tensor([risk], dtype=torch.float32, device=self.device)
+                    manager_dist = self.model.manager_distribution(agent, obs_tensor, risk_tensor)
+                    task_tensor = torch.multinomial(
+                        manager_dist.probs, 1, generator=self.generator
+                    ).squeeze(-1)
+                    worker_dist = self.model.worker_distribution(
+                        agent, obs_tensor, risk_tensor, task_tensor,
+                        torch.as_tensor(mask, dtype=torch.bool, device=self.device),
                     )
-                    task = int(result["task"].item())
-                    action = int(result["action"].item())
+                    action_tensor = torch.multinomial(
+                        worker_dist.probs, 1, generator=self.generator
+                    ).squeeze(-1)
+                    task, action = int(task_tensor.item()), int(action_tensor.item())
                     observations[agent], risks[agent] = obs, risk
                     tasks[agent], actions[agent] = task, action
-                    manager_logps[agent] = float(result["manager_log_prob"].item())
-                    worker_logps[agent] = float(result["worker_log_prob"].item())
+                    manager_logps[agent] = float(manager_dist.log_prob(task_tensor).item())
+                    worker_logps[agent] = float(worker_dist.log_prob(action_tensor).item())
                     masks[agent] = mask
                     action_dict[agent] = action
 
@@ -246,7 +253,7 @@ class RiskAwareHierarchicalTrainer:
         actor_losses, critic_losses, manager_entropies, worker_entropies = [], [], [], []
         n = rewards.shape[0]
         for _ in range(self.cfg.update_epochs):
-            permutation = torch.randperm(n, device=self.device)
+            permutation = torch.randperm(n, device=self.device, generator=self.generator)
             for start in range(0, n, self.cfg.minibatch_size):
                 idx = permutation[start:start + self.cfg.minibatch_size]
                 value_pred = self.model.value(states[idx])
