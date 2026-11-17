@@ -10,3 +10,9 @@ results/raw/
 *.pt
 *.pth
 .DS_Store
+data/
+artifacts/
+results/
+*.npz
+*.jsonl
+*.history.json
