@@ -1,1 +1,2 @@
 from .cc4_heuristic import CC4AlertGuidedPolicy
+from .cc4_team_uc_heuristic import CC4TeamUCInspiredPolicy
