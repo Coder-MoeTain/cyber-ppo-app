@@ -348,7 +348,7 @@ class RiskAwareHierarchicalTrainer:
             "worker_entropy": float(np.mean(worker_entropies)),
         }
 
-    def train(self, total_steps: int = 1024, rollout_steps: int = 128):
+    def train(self, total_steps: int = 1024, rollout_steps: int = 128, on_update=None):
         if total_steps < 1 or rollout_steps < 1:
             raise ValueError("step counts must be positive")
         history, steps = [], 0
@@ -356,9 +356,12 @@ class RiskAwareHierarchicalTrainer:
             rollout = self.collect_rollout(min(rollout_steps, total_steps - steps))
             metrics = self.update(rollout)
             steps += len(rollout["rewards"])
-            history.append({
+            record = {
                 "environment_steps": steps,
                 "episode_returns": rollout["episode_returns"],
                 **metrics,
-            })
+            }
+            history.append(record)
+            if on_update is not None:
+                on_update(record)
         return history
