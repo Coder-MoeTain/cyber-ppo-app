@@ -18,10 +18,12 @@ if [[ -z "${SENTINEL_DASHBOARD_TOKEN:-}" ]]; then
     umask 077
     "$PYTHON" -c 'import secrets; print(secrets.token_urlsafe(36))' > "$TOKEN_FILE"
     chmod 600 "$TOKEN_FILE"
+    echo "New dashboard access token (save it securely; shown only once):"
+    cat "$TOKEN_FILE"
+  else
+    echo "Using existing dashboard token from $TOKEN_FILE"
   fi
   export SENTINEL_DASHBOARD_TOKEN="$(cat "$TOKEN_FILE")"
-  echo "Dashboard access token (store it securely):"
-  echo "$SENTINEL_DASHBOARD_TOKEN"
 fi
 
 export PYTHONPATH="$ROOT/src:$ROOT/vendor/CybORG:${PYTHONPATH:-}"
