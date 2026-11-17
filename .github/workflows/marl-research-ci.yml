@@ -64,10 +64,6 @@ jobs:
         run: python -m pip install --no-deps -e vendor/CybORG
       - name: Install research package without replacing pinned dependencies
         run: python -m pip install --no-deps -e .
-      - name: Run official upstream CC4 tests
-        id: upstream_cc4
-        continue-on-error: true
-        run: python -m pytest -q vendor/CybORG/CybORG/Tests/test_cc4 --disable-warnings --maxfail=1
       - name: Validate adapter, seed replay, action masks and semantic tasks
         run: python scripts/validate_cyborg.py --one-step --verify-seed
       - name: Collect and validate offline CC4 risk-label smoke dataset
@@ -76,6 +72,10 @@ jobs:
           python -c "import numpy as np; d=np.load('/tmp/cc4-risk-smoke.npz'); assert d['observations'].ndim==2 and len(d['labels'])>0 and np.isfinite(d['observations']).all() and set(np.unique(d['labels'])).issubset({0,1}); print({'shape': d['observations'].shape, 'positive_rate': float(d['labels'].mean())})"
       - name: Run real CC4 RA-HMAPPO rollout and PPO update smoke
         run: python scripts/smoke_ra_hmappo_cc4.py --steps 8 --seed 42
+      - name: Run official upstream CC4 tests
+        id: upstream_cc4
+        continue-on-error: true
+        run: python -m pytest -q vendor/CybORG/CybORG/Tests/test_cc4 --disable-warnings --maxfail=1
       - name: Fail if official CC4 upstream tests failed
         if: always()
         env:
