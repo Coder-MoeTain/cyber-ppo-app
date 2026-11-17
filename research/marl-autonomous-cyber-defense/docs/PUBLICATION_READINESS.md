@@ -27,7 +27,7 @@ been produced in this release.
   held-out evaluation seeds), duplicate pairs and mismatched method seeds.
 - [x] SHA-256 artifact manifest creation and verification utility added and wired into both benchmark runners.
 - [x] Matched-budget ablation runner and paired analysis added for risk removal,
-  semantic task-mask removal and sum-versus-mean reward aggregation.
+  deterministic risk-rule manager, semantic task-mask removal and sum-versus-mean reward aggregation.
 - [x] Team UC-inspired stateful, action-mask-aware heuristic and simple
   alert-only comparator; neither is an exact competition-source reproduction.
 - [ ] Validate the Team UC-inspired implementation against published policy
@@ -59,8 +59,8 @@ been produced in this release.
   predeclared generalization shifts.
 - [ ] Report team/per-agent reward, red-session outcomes, availability,
   invalid-action rate, unnecessary intervention, latency and overhead.
-- [ ] Execute the risk-input, task-mapping and reward-aggregation ablation matrix.
-- [ ] Add and execute deterministic task-allocation and risk-calibration/uncertainty ablations.
+- [ ] Execute the risk-input, manager-mode, task-mapping and reward-aggregation ablation matrix.
+- [ ] Add and execute risk-calibration/uncertainty ablations.
 - [ ] Archive raw episode records, configs, checkpoints, source provenance,
   statistical scripts and environment logs.
 - [ ] Complete novelty review, manuscript, verified citations, artifact license
