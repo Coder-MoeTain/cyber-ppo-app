@@ -27,3 +27,13 @@ def test_truncation_bootstrap_math():
     reward,value,next_value=1.0,.5,2.0
     assert reward+.9*next_value-value==pytest.approx(2.3)
     assert reward-value==pytest.approx(.5)
+
+
+def test_mappo_training_callback_receives_progress():
+    trainer = MAPPOTrainer(
+        MockEnterpriseEnv(n_hosts=5, episode_length=3, seed=51),
+        MAPPOConfig(update_epochs=1, minibatch_size=3), seed=51,
+    )
+    updates = []
+    trainer.train(7, 3, on_update=updates.append)
+    assert [row["environment_steps"] for row in updates] == [3, 6, 7]
