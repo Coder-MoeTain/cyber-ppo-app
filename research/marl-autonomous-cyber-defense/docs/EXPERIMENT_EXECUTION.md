@@ -23,7 +23,7 @@ Use `DEVICE=cpu` only for smoke tests or when no compatible accelerator is avail
 The matrix now collects four disjoint seed partitions:
 
 - Training: seeds 11–99 (offline supervised model fitting).
-- Model selection: seeds 201–204 (early stopping only).
+- Model selection: seeds 201–220 (early stopping only).
 - Calibration: seeds 301–320 (scalar temperature fitting only).
 - Final risk-model test: seeds 401–420 (reported AUROC, AUPRC, Brier, ECE and prevalence only).
 
