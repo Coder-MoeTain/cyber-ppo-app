@@ -1,6 +1,7 @@
 """Evaluate an RA-HMAPPO checkpoint on held-out CC4 seeds."""
 import argparse
 import json
+import time
 from collections import Counter
 from pathlib import Path
 import numpy as np
@@ -33,6 +34,8 @@ def main():
     p.add_argument("--seeds", type=int, nargs="+", required=True)
     p.add_argument("--episode-steps", type=int, default=500)
     p.add_argument("--device", default="cpu")
+    p.add_argument("--profile-inference", action="store_true",
+                   help="Synchronize accelerators and record per-agent policy inference latency.")
     p.add_argument("--output", required=True)
     args = p.parse_args()
 
@@ -75,6 +78,8 @@ def main():
             invalid_actions = 0
             total_actions = 0
             steps = 0
+            inference_ms = []
+            red_host_timesteps = {a: 0 for a in env.possible_agents}
             for _ in range(args.episode_steps):
                 masks = env.action_masks()
                 actions = {}
@@ -91,6 +96,9 @@ def main():
                     task_mask = torch.as_tensor(
                         task_action_masks.any(axis=1), dtype=torch.bool, device=args.device
                     )
+                    if args.profile_inference and str(args.device).startswith("cuda"):
+                        torch.cuda.synchronize(args.device)
+                    inference_start = time.perf_counter()
                     with torch.no_grad():
                         manager_dist = model.manager_distribution(
                             agent, obs_tensor, risk_tensor, task_mask
@@ -104,6 +112,10 @@ def main():
                             agent, obs_tensor, risk_tensor, task_tensor, worker_mask
                         )
                         action = int(worker_dist.probs.argmax(-1).item())
+                    if args.profile_inference:
+                        if str(args.device).startswith("cuda"):
+                            torch.cuda.synchronize(args.device)
+                        inference_ms.append((time.perf_counter() - inference_start) * 1000.0)
                     actions[agent] = action
                     task_counts[CC4TaskActionMapper.TASKS[task]] += 1
                     total_actions += 1
@@ -116,6 +128,8 @@ def main():
                 for agent, reward in rewards.items():
                     totals[agent] += float(reward)
                 steps += 1
+                for a in env.possible_agents:
+                    red_host_timesteps[a] += red_host_count(env, env.env.hosts(a))
                 if all(bool(terms.get(a, False) or truncs.get(a, False))
                        for a in env.possible_agents):
                     break
@@ -134,6 +148,26 @@ def main():
                 "team_reward_mean_per_agent": float(np.mean(list(totals.values()))),
                 "per_agent_reward": totals,
                 "red_session_hosts_by_agent": host_counts,
+                "red_session_host_timesteps_by_agent": red_host_timesteps,
+                "red_session_host_timesteps_total": int(sum(red_host_timesteps.values())),
+                "red_session_host_timesteps_per_step": float(
+                    sum(red_host_timesteps.values()) / max(steps, 1)
+                ),
+                "operational_action_counts": {
+                    "restore_actions": int(action_counts.get("Restore", 0)),
+                    "traffic_control_actions": int(
+                        action_counts.get("BlockTrafficZone", 0) + action_counts.get("AllowTrafficZone", 0)
+                    ),
+                    "remove_actions": int(action_counts.get("Remove", 0)),
+                    "decoy_deployments": int(action_counts.get("DeployDecoy", 0)),
+                },
+                "inference_latency_ms": ({
+                    "mean": float(np.mean(inference_ms)),
+                    "median": float(np.median(inference_ms)),
+                    "p95": float(np.quantile(inference_ms, 0.95)),
+                    "p99": float(np.quantile(inference_ms, 0.99)),
+                    "n_agent_decisions": int(len(inference_ms)),
+                } if inference_ms else None),
                 "invalid_action_rate": float(invalid_actions / max(total_actions, 1)),
                 "action_counts": dict(action_counts),
                 "task_counts": dict(task_counts),
