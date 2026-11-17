@@ -5,7 +5,7 @@ cd "$ROOT"
 
 PYTHON="${PYTHON:-python}"
 PORT="${PORT:-8787}"
-HOST="${HOST:-127.0.0.1}"
+HOST="127.0.0.1"
 
 if ! "$PYTHON" -c 'import fastapi, uvicorn, torch' >/dev/null 2>&1; then
   echo "Dashboard dependencies missing. Install dashboard/requirements-server.txt in this environment." >&2
