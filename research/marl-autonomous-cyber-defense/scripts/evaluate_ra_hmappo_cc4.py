@@ -106,7 +106,7 @@ def main():
                     with torch.no_grad():
                         if manager_mode == "risk_rule":
                             preferred_task = 1 if risk >= risk_rule_threshold else 0
-                            available_tasks = torch.flatnonzero(task_mask)
+                            available_tasks = torch.nonzero(task_mask, as_tuple=False).flatten()
                             task = (
                                 preferred_task if bool(task_mask[preferred_task])
                                 else int(available_tasks[0].item())
