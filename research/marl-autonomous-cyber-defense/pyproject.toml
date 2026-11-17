@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "marl-autonomous-cyber-defense"
-version = "0.3.0"
-description = "Research scaffold for risk-aware hierarchical MARL cyber defense"
+version = "0.4.0"
+description = "Risk-conditioned hierarchical MARL cyber defense research package"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24", "PyYAML>=6.0", "torch>=2.1"]
