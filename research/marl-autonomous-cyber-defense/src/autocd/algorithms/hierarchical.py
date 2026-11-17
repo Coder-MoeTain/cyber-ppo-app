@@ -43,6 +43,8 @@ class RiskAwareHierarchicalActorCritic(nn.Module):
     def _dist(logits, mask=None):
         if mask is not None:
             mask = mask.to(device=logits.device, dtype=torch.bool)
+            if logits.ndim == 2 and mask.ndim == 1:
+                mask = mask.unsqueeze(0)
             if mask.shape != logits.shape or not mask.any(dim=-1).all():
                 raise ValueError("Mask must match logits and contain a valid choice in every row")
             logits = logits.masked_fill(~mask, torch.finfo(logits.dtype).min)
