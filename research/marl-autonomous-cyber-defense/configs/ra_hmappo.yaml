@@ -1,0 +1,43 @@
+project:
+  name: risk-aware-hierarchical-marl-cyber-defense
+  version: 0.4.0
+  benchmark: CAGE-Challenge-4
+  environment: CybORG
+  cyborg_commit: REQUIRED_BEFORE_EXPERIMENTS
+  seed: 42
+agents:
+  names: [blue_agent_0, blue_agent_1, blue_agent_2, blue_agent_3, blue_agent_4]
+  observation_wrapper: BlueFlatWrapper
+  pad_spaces: true
+  action_masking: true
+hierarchy:
+  manager: decentralized_risk_conditioned_task_policy
+  worker: decentralized_risk_and_task_conditioned_action_policy
+  critic: centralized_global_state_value
+  num_tasks: 5
+  task_ontology:
+    - monitor
+    - investigate
+    - assess_risk
+    - contain
+    - recover
+  risk_input:
+    range: [0.0, 1.0]
+    source: REQUIRED_VALIDATED_RISK_ESTIMATOR
+algorithm:
+  name: RA-HMAPPO-architecture
+  status: policy_architecture_only_not_trainer_integrated
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  learning_rate: 0.0003
+  update_epochs: 4
+  minibatch_size: 64
+  manager_entropy_coefficient: 0.01
+  worker_entropy_coefficient: 0.01
+  value_coefficient: 0.5
+experiment:
+  evaluation_seeds: [101, 202, 303, 404, 505, 606, 707, 808, 909, 1001]
+  evaluation_episodes_per_seed: 10
+  publication_evaluation_enabled: false
+  note: Do not run or report benchmark experiments until simulator commit, task mapping, and reward semantics are verified.
