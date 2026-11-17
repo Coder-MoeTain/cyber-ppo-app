@@ -34,6 +34,10 @@ been produced in this release.
 
 ## Experimental and manuscript
 
+- [x] Additional regression tests for paired result matrices, duplicate/missing seed pairs, heuristic pairing, and deterministic two-level bootstrap added; CI execution pending.
+- [x] Manuscript structure drafted with explicit evidence-pending sections; it is not a complete submission manuscript until results, related-work citations, discussion, and conclusions are completed.
+- [x] Experiment execution and artifact-preservation guide added.
+
 - [ ] Freeze hypotheses, primary endpoints and disjoint scenario seed/config splits.
 - [ ] Train risk model on training seeds and report held-out calibration,
   AUROC/AUPRC, Brier score and ECE.
