@@ -18,6 +18,8 @@ def main():
     p.add_argument("--risk-checkpoint")
     p.add_argument("--risk-mode", choices=["predicted", "constant"], default="predicted")
     p.add_argument("--task-mapping", choices=["semantic", "unconstrained"], default="semantic")
+    p.add_argument("--manager-mode", choices=["learned", "risk_rule"], default="learned")
+    p.add_argument("--risk-rule-threshold", type=float, default=0.6)
     p.add_argument("--reward-aggregation", choices=["sum", "mean"], default="sum")
     p.add_argument("--steps", type=int, default=1000000)
     p.add_argument("--rollout-steps", type=int, default=256)
@@ -46,6 +48,7 @@ def main():
         trainer = RiskAwareHierarchicalTrainer(
             env, risk_fn, config, seed=args.seed, device=args.device,
             reward_aggregation=args.reward_aggregation, task_action_mapper=task_mapper,
+            manager_mode=args.manager_mode, risk_rule_threshold=args.risk_rule_threshold,
         )
         if str(args.device).startswith("cuda"):
             torch.cuda.synchronize(args.device)
@@ -67,6 +70,8 @@ def main():
             "risk_checkpoint": str(args.risk_checkpoint) if args.risk_checkpoint else None,
             "risk_mode": args.risk_mode,
             "task_mapping": args.task_mapping,
+            "manager_mode": args.manager_mode,
+            "risk_rule_threshold": args.risk_rule_threshold,
             "reward_aggregation": args.reward_aggregation,
             "environment": "CAGE-Challenge-4",
             "cyborg_version": "4.0",
