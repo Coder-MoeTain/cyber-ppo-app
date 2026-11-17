@@ -11,6 +11,8 @@ been produced in this release.
 - [x] Risk-conditioned hierarchical manager/worker policy architecture.
 - [x] RA-HMAPPO clipped-PPO trainer with separate manager/worker log-probabilities;
   mock training tests added.
+- [x] Six semantic CC4 manager options with task-specific worker action masks;
+  unit tests and live smoke checks added.
 - [x] Independent PPO baseline with decentralized critics; mock tests added.
 - [x] Offline-supervised risk-estimation pipeline with held-out calibration
   metrics; data collection uses simulator ground truth only for labels.
@@ -19,7 +21,7 @@ been produced in this release.
 - [x] Official CAGE Challenge 4 source revision pinned in `configs/cc4.lock.yaml`.
 - [ ] Pass official upstream CC4 tests and live adapter reset/seed/step validation.
 - [ ] Audit privileged risk-label extraction against the pinned simulator.
-- [ ] Verify task ontology and operational mapping to CC4 actions.
+- [ ] Empirically validate task ontology and ablate alternative option mappings.
 - [ ] Validate reward aggregation and episode-boundary semantics on real CC4.
 - [ ] Complete matched-budget training and evaluation for heuristic, IPPO,
   MAPPO and RA-HMAPPO.
