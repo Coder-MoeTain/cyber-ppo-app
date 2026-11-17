@@ -2,6 +2,7 @@
 import argparse
 import json
 import math
+from collections import Counter
 
 from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
 from autocd.algorithms.hierarchical_trainer import (
@@ -31,6 +32,7 @@ def main():
         )
         rollout = trainer.collect_rollout(args.steps)
         metrics = trainer.update(rollout)
+        task_counts = Counter(task for row in rollout["tasks"] for task in row.values())
         values = [metrics[k] for k in (
             "actor_loss", "critic_loss", "manager_entropy", "worker_entropy"
         )]
@@ -44,6 +46,7 @@ def main():
             "observation_dim": trainer.obs_dim,
             "action_dim": next(iter(trainer.action_dims.values())),
             "num_tasks": config.num_tasks,
+            "task_counts": dict(task_counts),
             "metrics": metrics,
         }, indent=2))
     finally:
