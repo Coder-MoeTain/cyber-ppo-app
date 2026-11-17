@@ -1,0 +1,27 @@
+project:
+  name: independent-ppo-cc4-baseline
+  version: 0.5.0
+  benchmark: CAGE-Challenge-4
+  cyborg_commit: 8c3c50ca54b176c2de199847944e8dcc035497e3
+  seed: 42
+agents:
+  names: [blue_agent_0, blue_agent_1, blue_agent_2, blue_agent_3, blue_agent_4]
+  observation_wrapper: BlueFlatWrapper
+  pad_spaces: true
+  action_masking: true
+algorithm:
+  name: IPPO
+  centralized_critic: false
+  shared_policy: false
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  learning_rate: 0.0003
+  update_epochs: 4
+  minibatch_size: 64
+experiment:
+  episode_steps: 500
+  total_environment_steps: 1000000
+  training_seeds: [11, 22, 33, 44, 55, 66, 77, 88, 99, 111]
+  evaluation_seeds: [501, 502, 503, 504, 505, 506, 507, 508, 509, 510]
+  publication_evaluation_enabled: false
