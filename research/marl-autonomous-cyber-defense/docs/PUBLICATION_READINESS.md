@@ -1,16 +1,28 @@
 # Publication readiness gates
 
-**Current classification: NOT publication ready.** Mock-environment results validate software only.
+**Current classification: NOT publication ready.** Mock returns and policy
+architecture tests are not benchmark evidence.
 
-- [x] CC4 adapter boundary and five-agent action-mask interface implemented.
-- [x] CTDE MAPPO trainer and paired statistical utilities implemented; mock-tested.
-- [ ] Pin verified CybORG/CAGE SHA and lock dependencies.
-- [ ] Run real CAGE enterprise scenario; verify observation/action dimensions, masks and seed behavior.
-- [ ] Validate PPO/MAPPO on CybORG and implement Independent PPO baseline.
-- [ ] Implement learned high-level risk-aware hierarchy; deterministic coordination is not the claimed contribution.
-- [ ] Freeze hypotheses, primary endpoints, disjoint scenario splits and analysis plan.
-- [ ] Run >=10 independent seeds where feasible; report security, availability, response and overhead metrics.
-- [ ] Run risk, hierarchy, communication and reward ablations; archive logs/checkpoints/provenance.
-- [ ] Complete paper, verified citations, artifact license and clean-machine reproduction.
+## Software and method
+- [x] Five-agent CC4 adapter boundary and action-mask interface.
+- [x] CTDE MAPPO trainer and paired statistical utilities.
+- [x] Risk-conditioned manager/worker policy architecture; unit-tested.
+- [ ] Integrate manager and worker decisions into a hierarchical rollout buffer.
+- [ ] Implement and test joint or separately weighted clipped PPO objectives.
+- [ ] Define task ontology and safe mapping from high-level tasks to CC4 actions.
+- [ ] Pin verified CybORG/CAGE commit and lock dependencies.
+- [ ] Validate reset, terminal/truncation, masks, dimensions and seeding on live CC4.
+- [ ] Implement Independent PPO and verify all baselines on the real simulator.
+- [ ] Validate reward semantics and report per-agent and team outcomes.
 
-Never label mock-environment returns as CybORG results.
+## Experimental and manuscript
+- [ ] Freeze hypotheses, primary endpoints and disjoint scenario splits.
+- [ ] Run >=10 independent seeds where feasible and disclose deviations.
+- [ ] Report attack success, critical-asset compromise, service availability,
+  detection/mitigation latency, unnecessary defensive actions and overhead.
+- [ ] Run risk, hierarchy, communication and reward ablations.
+- [ ] Archive raw episode results, configs, checkpoints and environment provenance.
+- [ ] Complete novelty review, manuscript, verified citations, artifact license
+  and clean-machine reproduction.
+
+Never present mock-environment results as CybORG results.
