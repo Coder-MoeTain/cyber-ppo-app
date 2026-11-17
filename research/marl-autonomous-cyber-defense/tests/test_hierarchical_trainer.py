@@ -102,3 +102,16 @@ def test_risk_rule_manager_uses_monitor_task_for_low_risk():
     )
     rollout = trainer.collect_rollout(4)
     assert all(row["blue_agent_0"] == 0 for row in rollout["tasks"])
+
+
+def test_training_callback_receives_rollout_progress():
+    env = MockEnterpriseEnv(n_hosts=5, episode_length=3, seed=31)
+    trainer = RiskAwareHierarchicalTrainer(
+        env, mock_risk,
+        RAHMAPPOConfig(update_epochs=1, minibatch_size=3, hidden_dim=32),
+        seed=31,
+    )
+    updates = []
+    history = trainer.train(7, 3, on_update=updates.append)
+    assert len(updates) == len(history) == 3
+    assert [row["environment_steps"] for row in updates] == [3, 6, 7]
