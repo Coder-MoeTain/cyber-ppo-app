@@ -65,6 +65,7 @@ done
   --ippo-glob "$RESULTS/ippo_seed*.jsonl" \
   --mappo-glob "$RESULTS/mappo_seed*.jsonl" \
   --heuristic-file "$RESULTS/heuristic.jsonl" \
+  --alert-only-file "$RESULTS/alert_only.jsonl" \
   --output "$RESULTS/paired_analysis.json"
 
 "$PYTHON" scripts/artifact_manifest.py create \
