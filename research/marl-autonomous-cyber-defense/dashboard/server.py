@@ -82,12 +82,10 @@ def job_status():
                 lines = progress_path.read_text(encoding="utf-8").splitlines()
                 for line in reversed(lines):
                     row = json.loads(line)
-                    if row.get("event") == "training_update":
+                    if row.get("event") == "training_update" and latest is None:
                         latest = row
-                        break
-                    if row.get("event") == "training_finished":
+                    elif row.get("event") == "training_finished":
                         state["trainer_event"] = row
-                        break
             except (OSError, ValueError, json.JSONDecodeError):
                 pass
         state["progress"] = latest
@@ -251,6 +249,8 @@ async def stop(_: None = Depends(require_auth)):
             raise HTTPException(409, "No active training job")
         JOB["status"] = "stopping"
         process = PROCESS
+    if state.get("status") == "paused":
+        os.killpg(process.pid, signal.SIGCONT)
     os.killpg(process.pid, signal.SIGINT)
     try:
         await asyncio.wait_for(asyncio.to_thread(process.wait), timeout=10)
