@@ -9,6 +9,7 @@ import torch
 from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
 from autocd.algorithms.hierarchical import RiskAwareHierarchicalActorCritic
 from autocd.envs.cyborg_adapter import CybORGAdapter
+from autocd.envs.cc4_tasks import CC4TaskActionMapper
 from autocd.risk_model import RiskPredictor
 
 
@@ -52,11 +53,13 @@ def main():
         model.load_state_dict(checkpoint["model_state_dict"])
         model.eval()
         risk_fn = RiskPredictor.load(args.risk_checkpoint, device=args.device)
+        task_mapper = CC4TaskActionMapper(env.env)
 
         for seed in args.seeds:
             observations, infos = env.reset(seed=seed)
             totals = {a: 0.0 for a in env.possible_agents}
             action_counts = Counter()
+            task_counts = Counter()
             invalid_actions = 0
             total_actions = 0
             steps = 0
@@ -67,16 +70,27 @@ def main():
                     obs = np.asarray(observations[agent], dtype=np.float32)
                     risk = risk_fn(agent, obs, infos.get(agent, {}))
                     mask = masks[agent]
+                    obs_tensor = torch.as_tensor(obs, dtype=torch.float32, device=args.device)
+                    risk_tensor = torch.tensor([risk], dtype=torch.float32, device=args.device)
+                    task_action_masks = task_mapper(agent, obs, infos.get(agent, {}), mask)
+                    task_mask = torch.as_tensor(
+                        task_action_masks.any(axis=1), dtype=torch.bool, device=args.device
+                    )
                     with torch.no_grad():
-                        decision = model.act(
-                            agent,
-                            torch.as_tensor(obs, dtype=torch.float32, device=args.device),
-                            torch.tensor([risk], dtype=torch.float32, device=args.device),
-                            action_mask=torch.as_tensor(mask, dtype=torch.bool, device=args.device),
-                            deterministic=True,
+                        manager_dist = model.manager_distribution(
+                            agent, obs_tensor, risk_tensor, task_mask
                         )
-                    action = int(decision["action"].item())
+                        task_tensor = manager_dist.probs.argmax(-1)
+                        task = int(task_tensor.item())
+                        worker_mask = torch.as_tensor(
+                            task_action_masks[task], dtype=torch.bool, device=args.device
+                        )
+                        worker_dist = model.worker_distribution(
+                            agent, obs_tensor, risk_tensor, task_tensor, worker_mask
+                        )
+                        action = int(worker_dist.probs.argmax(-1).item())
                     actions[agent] = action
+                    task_counts[CC4TaskActionMapper.TASKS[task]] += 1
                     total_actions += 1
                     invalid_actions += int(not bool(mask[action]))
                     label = env.env.action_labels(agent)[action]
@@ -103,6 +117,7 @@ def main():
                 "red_session_hosts_by_agent": host_counts,
                 "invalid_action_rate": float(invalid_actions / max(total_actions, 1)),
                 "action_counts": dict(action_counts),
+                "task_counts": dict(task_counts),
             })
     finally:
         env.close()
