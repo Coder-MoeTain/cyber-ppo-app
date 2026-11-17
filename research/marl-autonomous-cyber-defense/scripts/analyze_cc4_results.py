@@ -128,6 +128,7 @@ def main():
     p.add_argument("--mappo-glob", required=True)
     p.add_argument("--heuristic-file", required=True)
     p.add_argument("--alert-only-file", required=True)
+    p.add_argument("--hmarl-file", help="Optional paired published H-MARL baseline JSONL.")
     p.add_argument("--output", required=True)
     p.add_argument("--bootstrap", type=int, default=10000)
     p.add_argument("--seed", type=int, default=1234)
@@ -144,11 +145,14 @@ def main():
     mappo_records = load_records(args.mappo_glob)
     heuristic_records = load_records(args.heuristic_file, require_training_seed=False)
     alert_only_records = load_records(args.alert_only_file, require_training_seed=False)
+    hmarl_records = (load_records(args.hmarl_file, require_training_seed=False)
+                     if args.hmarl_file else None)
     ra_train, eval_seeds, ra = model_matrix(ra_records)
     ippo_train, ippo_eval, ippo = model_matrix(ippo_records)
     mappo_train, mappo_eval, mappo = model_matrix(mappo_records)
     h_seeds, h = heuristic_vector(heuristic_records)
     alert_seeds, alert_only = heuristic_vector(alert_only_records)
+    hmarl_seeds, hmarl = heuristic_vector(hmarl_records) if hmarl_records else (None, None)
     validate_expected_matrix(
         ra_train, eval_seeds,
         expected_training=args.expected_training_seeds,
@@ -157,7 +161,8 @@ def main():
     if ra_train != ippo_train or ra_train != mappo_train:
         raise ValueError("RA-HMAPPO, IPPO and MAPPO must use the same training seeds")
     if (eval_seeds != ippo_eval or eval_seeds != mappo_eval or eval_seeds != h_seeds
-            or eval_seeds != alert_seeds):
+            or eval_seeds != alert_seeds
+            or (hmarl_seeds is not None and eval_seeds != hmarl_seeds)):
         raise ValueError("All methods must use exactly the same held-out evaluation seeds")
 
     comparisons = {}
@@ -210,6 +215,22 @@ def main():
     p_values.append(alert_only_test["p_value"])
     labels.append("RA-HMAPPO_vs_alert_only")
 
+    if hmarl_records is not None:
+        hmarl_test = paired_permutation_test(ra_eval_mean, hmarl, seed=args.seed)
+        hmarl_ci = model_vs_heuristic_bootstrap(
+            ra, hmarl, n_boot=args.bootstrap, seed=args.seed
+        )
+        hmarl_diff = ra_eval_mean - hmarl
+        comparisons["RA-HMAPPO_vs_HMARL"] = {
+            **hmarl_ci,
+            "paired_evaluation_seed_permutation": hmarl_test,
+            "cohens_dz": float(
+                hmarl_diff.mean() / (hmarl_diff.std(ddof=1) + 1e-12)
+            ),
+        }
+        p_values.append(hmarl_test["p_value"])
+        labels.append("RA-HMAPPO_vs_HMARL")
+
     adjusted = holm_bonferroni(p_values)
     for name, p_adj in zip(labels, adjusted):
         comparisons[name]["holm_adjusted_p_value"] = p_adj
@@ -250,23 +271,28 @@ def main():
             ]),
         }
 
+    methods = {
+        "RA-HMAPPO": summary(ra_records),
+        "IPPO": summary(ippo_records),
+        "MAPPO": summary(mappo_records),
+        "heuristic": summary(heuristic_records),
+        "alert_only": summary(alert_only_records),
+    }
+    if hmarl_records is not None:
+        methods["H-MARL"] = summary(hmarl_records)
+
     result = {
         "primary_endpoint": "episode cumulative sum of five Blue-agent rewards",
         "training_seeds": ra_train,
         "evaluation_seeds": eval_seeds,
-        "methods": {
-            "RA-HMAPPO": summary(ra_records),
-            "IPPO": summary(ippo_records),
-            "MAPPO": summary(mappo_records),
-            "heuristic": summary(heuristic_records),
-            "alert_only": summary(alert_only_records),
-        },
+        "methods": methods,
         "planned_comparisons": comparisons,
         "caveats": [
             "Statistical inference is only as valid as the independence of training and evaluation seeds.",
             "Heuristic comparison averages RA-HMAPPO across training seeds before paired evaluation-seed permutation.",
             "These scripts do not correct for scenario-variant multiplicity; preregister additional tests before running variants.",
             "Reward and red-session host counts are not substitutes for separately validated service-availability and mitigation-latency metrics.",
+            "Published H-MARL uses a custom feature-rich wrapper with communication and malicious-file indicators; its information interface is not matched to the main matrix and must be discussed as such.",
         ],
     }
     output = Path(args.output)
