@@ -93,7 +93,8 @@ independent samples. Publish raw per-episode outcomes and analysis scripts.
 - Remove the learned manager (flat MAPPO).
 - Remove risk input.
 - Replace learned hierarchy with deterministic task allocation.
-- Remove risk-aware reward shaping.
+- Remove the risk input from manager and worker policies.
+- Compare sum versus mean team-reward aggregation.
 - Replace action masks with unmasked policy only as a diagnostic, not as a
   deployable baseline.
 - Vary risk estimator calibration and uncertainty handling.
