@@ -33,3 +33,51 @@ jobs:
         run: python scripts/phase1_smoke_test.py
       - name: Mock MAPPO training smoke test (not CybORG)
         run: python scripts/train_mock_mappo.py --steps 8 --rollout-steps 4 --seed 42
+
+  cc4-live-integration:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONPATH: ${{ github.workspace }}/research/marl-autonomous-cyber-defense/vendor/CybORG
+    defaults:
+      run:
+        working-directory: research/marl-autonomous-cyber-defense
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout pinned official CAGE Challenge 4 source
+        uses: actions/checkout@v4
+        with:
+          repository: cage-challenge/cage-challenge-4
+          ref: 8c3c50ca54b176c2de199847944e8dcc035497e3
+          path: research/marl-autonomous-cyber-defense/vendor/CybORG
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: research/marl-autonomous-cyber-defense/requirements-cc4-validation.txt
+      - name: Install pinned CC4 runtime dependencies
+        run: python -m pip install -r requirements-cc4-validation.txt
+      - name: Install CPU PyTorch for real-environment trainer smoke
+        run: python -m pip install torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
+      - name: Expose pinned simulator source and install package metadata
+        run: python -m pip install --no-deps -e vendor/CybORG
+      - name: Install research package without replacing pinned dependencies
+        run: python -m pip install --no-deps -e .
+      - name: Run official upstream CC4 tests
+        id: upstream_cc4
+        continue-on-error: true
+        run: python -m pytest -q vendor/CybORG/CybORG/Tests/test_cc4 --disable-warnings --maxfail=1
+      - name: Validate adapter, seed replay, action masks and semantic tasks
+        run: python scripts/validate_cyborg.py --one-step --verify-seed
+      - name: Collect and validate offline CC4 risk-label smoke dataset
+        run: |
+          python scripts/collect_cc4_risk_dataset.py --seeds 42 43 --steps 500 --output /tmp/cc4-risk-smoke.npz
+          python -c "import numpy as np; d=np.load('/tmp/cc4-risk-smoke.npz'); assert d['observations'].ndim==2 and len(d['labels'])>0 and np.isfinite(d['observations']).all() and set(np.unique(d['labels'])).issubset({0,1}); print({'shape': d['observations'].shape, 'positive_rate': float(d['labels'].mean())})"
+      - name: Run real CC4 RA-HMAPPO rollout and PPO update smoke
+        run: python scripts/smoke_ra_hmappo_cc4.py --steps 8 --seed 42
+      - name: Fail if official CC4 upstream tests failed
+        if: always()
+        env:
+          UPSTREAM_TEST_OUTCOME: ${{ steps.upstream_cc4.outcome }}
+        run: test "$UPSTREAM_TEST_OUTCOME" = "success"
