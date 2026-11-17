@@ -90,3 +90,33 @@ def test_episode_cluster_bootstrap_rejects_single_episode():
         RISK_TRAIN.episode_cluster_bootstrap(
             [0, 1], [0.1, 0.9], [7, 7], n_boot=200
         )
+
+
+def test_dataset_loader_rejects_missing_episode_seed_coverage(tmp_path):
+    path = tmp_path / "missing_episode.npz"
+    np.savez_compressed(
+        path,
+        observations=np.ones((4, 3), dtype=np.float32),
+        agent_ids=np.zeros(4, dtype=np.int64),
+        labels=np.asarray([0, 1, 0, 1], dtype=np.int64),
+        episode_ids=np.asarray([10, 10, 10, 10], dtype=np.int64),
+        agent_names=np.asarray(["blue_agent_0"]),
+        seeds=np.asarray([10, 11], dtype=np.int64),
+    )
+    with pytest.raises(ValueError, match="seed provenance"):
+        RISK_TRAIN.load_dataset(path)
+
+
+def test_dataset_loader_rejects_misaligned_agent_ids(tmp_path):
+    path = tmp_path / "misaligned.npz"
+    np.savez_compressed(
+        path,
+        observations=np.ones((4, 3), dtype=np.float32),
+        agent_ids=np.zeros(3, dtype=np.int64),
+        labels=np.asarray([0, 1, 0, 1], dtype=np.int64),
+        episode_ids=np.asarray([10, 10, 11, 11], dtype=np.int64),
+        agent_names=np.asarray(["blue_agent_0"]),
+        seeds=np.asarray([10, 11], dtype=np.int64),
+    )
+    with pytest.raises(ValueError, match="misaligned"):
+        RISK_TRAIN.load_dataset(path)
