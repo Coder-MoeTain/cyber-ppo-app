@@ -13,7 +13,7 @@ from torch import nn
 class RiskEstimatorNet(nn.Module):
     def __init__(self, observation_dim: int, num_agents: int, hidden_dim: int = 128):
         super().__init__()
-        if min(observation_dim, num_agents, hidden_dim) < 1:
+        if min(observation_dim, num_agents) < 1 or hidden_dim < 2:
             raise ValueError("model dimensions must be positive")
         self.observation_dim = observation_dim
         self.num_agents = num_agents
@@ -39,6 +39,8 @@ class RiskEstimatorNet(nn.Module):
 
 
 def binary_metrics(labels, probabilities, bins=10):
+    if bins < 1:
+        raise ValueError("bins must be positive")
     y = np.asarray(labels, dtype=np.int64).reshape(-1)
     p = np.asarray(probabilities, dtype=np.float64).reshape(-1)
     if y.size != p.size or y.size == 0 or not np.isfinite(p).all():
@@ -81,10 +83,12 @@ class RiskPredictor:
     def __init__(self, model, agent_names, temperature=1.0, device="cpu"):
         self.model = model.to(device).eval()
         self.agent_names = tuple(agent_names)
+        if not self.agent_names or len(set(self.agent_names)) != len(self.agent_names):
+            raise ValueError("agent_names must be non-empty and unique")
         self.agent_to_id = {name: i for i, name in enumerate(self.agent_names)}
         self.temperature = float(temperature)
         self.device = torch.device(device)
-        if self.temperature <= 0:
+        if not np.isfinite(self.temperature) or self.temperature <= 0:
             raise ValueError("temperature must be positive")
 
     @classmethod
