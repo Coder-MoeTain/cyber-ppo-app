@@ -14,7 +14,7 @@ def _mlp(input_dim: int, output_dim: int, hidden_dim: int) -> nn.Sequential:
 class RiskAwareHierarchicalActorCritic(nn.Module):
     """Decentralized manager/worker policies with a centralized training critic."""
     def __init__(self, agent_names, observation_dim, action_dim, global_state_dim,
-                 num_tasks=5, hidden_dim=128):
+                 num_tasks=6, hidden_dim=128):
         super().__init__()
         if not agent_names or len(set(agent_names)) != len(agent_names):
             raise ValueError("agent_names must be non-empty and unique")
