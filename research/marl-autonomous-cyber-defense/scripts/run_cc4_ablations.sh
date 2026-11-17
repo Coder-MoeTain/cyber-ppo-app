@@ -21,14 +21,14 @@ fi
 mkdir -p "$OUT" "$RESULTS"
 
 run_variant() {
-  local variant="$1" risk_mode="$2" mapping="$3" aggregation="$4"
+  local variant="$1" risk_mode="$2" mapping="$3" aggregation="$4" manager="$5"
   local risk_args=()
   if [[ "$risk_mode" == "predicted" ]]; then
     risk_args=(--risk-checkpoint "$RISK_CHECKPOINT")
   fi
   for seed in "${TRAIN_SEEDS[@]}"; do
     "$PYTHON" scripts/train_ra_hmappo_cc4.py "${risk_args[@]}" \
-      --risk-mode "$risk_mode" --task-mapping "$mapping" \
+      --risk-mode "$risk_mode" --task-mapping "$mapping" --manager-mode "$manager" \
       --reward-aggregation "$aggregation" --steps "$STEPS" \
       --rollout-steps "$ROLLOUT_STEPS" --episode-steps "$EPISODE_STEPS" \
       --device "$DEVICE" --seed "$seed" \
@@ -47,16 +47,18 @@ run_variant() {
 }
 
 # Full model and one-factor-at-a-time ablations.
-run_variant full predicted semantic sum
-run_variant no_risk constant semantic sum
-run_variant no_semantic_mapping predicted unconstrained sum
-run_variant mean_team_reward predicted semantic mean
+run_variant full predicted semantic sum learned
+run_variant no_risk constant semantic sum learned
+run_variant no_semantic_mapping predicted unconstrained sum learned
+run_variant mean_team_reward predicted semantic mean learned
+run_variant risk_rule_manager predicted semantic sum risk_rule
 
 "$PYTHON" scripts/analyze_cc4_ablations.py \
   --full-glob "$RESULTS/full_seed*.jsonl" \
   --no-risk-glob "$RESULTS/no_risk_seed*.jsonl" \
   --no-mapping-glob "$RESULTS/no_semantic_mapping_seed*.jsonl" \
   --mean-reward-glob "$RESULTS/mean_team_reward_seed*.jsonl" \
+  --risk-rule-glob "$RESULTS/risk_rule_manager_seed*.jsonl" \
   --output "$RESULTS/ablation_analysis.json"
 
 "$PYTHON" scripts/artifact_manifest.py create \
