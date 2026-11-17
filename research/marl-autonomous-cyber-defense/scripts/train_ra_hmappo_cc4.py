@@ -14,7 +14,10 @@ from autocd.risk_model import RiskPredictor
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--risk-checkpoint", required=True)
+    p.add_argument("--risk-checkpoint")
+    p.add_argument("--risk-mode", choices=["predicted", "constant"], default="predicted")
+    p.add_argument("--task-mapping", choices=["semantic", "unconstrained"], default="semantic")
+    p.add_argument("--reward-aggregation", choices=["sum", "mean"], default="sum")
     p.add_argument("--steps", type=int, default=1000000)
     p.add_argument("--rollout-steps", type=int, default=256)
     p.add_argument("--episode-steps", type=int, default=500)
@@ -25,17 +28,23 @@ def main():
     if args.steps < 1 or args.rollout_steps < 1 or args.episode_steps < 1:
         raise ValueError("step counts must be positive")
 
+    if args.risk_mode == "predicted" and not args.risk_checkpoint:
+        p.error("--risk-checkpoint is required when --risk-mode=predicted")
+    if args.risk_mode == "constant" and args.risk_checkpoint:
+        p.error("--risk-checkpoint must be omitted when --risk-mode=constant")
+
     env = CybORGAdapter(
         scenario_generator=EnterpriseScenarioGenerator(steps=args.episode_steps),
         seed=args.seed,
     )
     try:
-        risk_fn = RiskPredictor.load(args.risk_checkpoint, device=args.device)
+        risk_fn = (RiskPredictor.load(args.risk_checkpoint, device=args.device)
+                   if args.risk_mode == "predicted" else lambda agent, obs, info: 0.5)
         config = RAHMAPPOConfig(num_tasks=len(CC4TaskActionMapper.TASKS))
-        task_mapper = CC4TaskActionMapper(env.env)
+        task_mapper = CC4TaskActionMapper(env.env) if args.task_mapping == "semantic" else None
         trainer = RiskAwareHierarchicalTrainer(
             env, risk_fn, config, seed=args.seed, device=args.device,
-            reward_aggregation="sum", task_action_mapper=task_mapper,
+            reward_aggregation=args.reward_aggregation, task_action_mapper=task_mapper,
         )
         history = trainer.train(args.steps, args.rollout_steps)
         output = Path(args.output)
@@ -48,7 +57,10 @@ def main():
             "global_state_dim": trainer.global_state_dim,
             "config": asdict(config),
             "seed": args.seed,
-            "risk_checkpoint": str(args.risk_checkpoint),
+            "risk_checkpoint": str(args.risk_checkpoint) if args.risk_checkpoint else None,
+            "risk_mode": args.risk_mode,
+            "task_mapping": args.task_mapping,
+            "reward_aggregation": args.reward_aggregation,
             "environment": "CAGE-Challenge-4",
             "cyborg_version": "4.0",
             "training_steps": args.steps,
