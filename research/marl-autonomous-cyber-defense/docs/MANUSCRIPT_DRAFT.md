@@ -75,8 +75,9 @@ The target matrix is ten independent training seeds and 100 held-out evaluation 
 
 - Primary: cumulative sum of the five Blue-agent reward streams per episode.
 - Security: red-session host counts and any additional CC4-supported compromise/mission outcomes with clearly stated measurement semantics.
-- Operational: service availability, green-user disruption, invalid-action rate, unnecessary containment/restoration, and mitigation latency where instrumentation permits.
-- Efficiency: inference latency, training wall-clock time, peak memory, and checkpoint size.
+- Security/operational proxies currently implemented: red-session host-time exposure, final red-session host counts, invalid-action rate, and Restore/Remove/traffic-control/decoy action counts.
+- Efficiency currently implemented: per-agent policy inference latency (mean/median/p95/p99) and training wall-clock time/throughput.
+- Not yet instrumented: direct Green-user service availability, downtime duration, false-positive recovery cost, peak memory, and action-to-mitigation latency. These must be measured directly or explicitly listed as unavailable; do not infer them from reward or action counts.
 - Risk estimator: AUROC, AUPRC, Brier score, ECE, calibration curve, and positive-label prevalence.
 
 Unavailable metrics must be marked as unavailable rather than inferred from reward.
