@@ -69,13 +69,17 @@ rule explicitly defined from the five per-agent reward streams.
 Secondary outcomes:
 - per-agent cumulative reward and variance;
 - critical-zone and mission-phase reward;
-- service availability / green-user disruption;
-- compromised-host or red-impact outcomes where observable without leaking
-  privileged state to the acting policy;
+- red-session host-time exposure (sum of per-zone red-session host counts over
+  episode steps) and final red-session host counts;
 - valid/invalid action rate;
-- detection, analysis, removal and restoration action counts and latency;
-- unnecessary containment/restoration and false-positive response cost;
-- inference time, training time and model size.
+- Restore, Remove, BlockTrafficZone, AllowTrafficZone and DeployDecoy action
+  counts as intervention proxies;
+- per-agent policy inference latency (mean, median, p95 and p99) and training
+  wall-clock time / throughput;
+- service availability, green-user disruption, false-positive recovery and
+  true downtime cost require direct Green-agent/service instrumentation and
+  are not yet measured by the current evaluator. Do not infer them from reward
+  or action counts.
 
 Separate training-only privileged labels from actor-visible inputs. If a
 risk estimator is supervised using simulator ground truth, disclose that
