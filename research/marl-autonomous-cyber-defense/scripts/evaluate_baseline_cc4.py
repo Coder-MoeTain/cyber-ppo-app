@@ -10,6 +10,7 @@ from CybORG.Simulator.Scenarios import EnterpriseScenarioGenerator
 from autocd.algorithms.independent_ppo import IndependentActorCritic
 from autocd.algorithms.mappo_trainer import CTDEActorCritic
 from autocd.baselines.cc4_heuristic import CC4AlertGuidedPolicy
+from autocd.baselines.cc4_team_uc_heuristic import CC4TeamUCInspiredPolicy
 from autocd.envs.cyborg_adapter import CybORGAdapter
 
 
@@ -26,7 +27,7 @@ def red_host_count(adapter, hostnames):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--baseline", choices=["ippo", "mappo", "heuristic"], required=True)
+    p.add_argument("--baseline", choices=["ippo", "mappo", "heuristic", "alert-only"], required=True)
     p.add_argument("--checkpoint")
     p.add_argument("--seeds", type=int, nargs="+", required=True)
     p.add_argument("--episode-steps", type=int, default=500)
@@ -60,6 +61,8 @@ def main():
                 ).to(args.device)
             model.load_state_dict(checkpoint["model_state_dict"])
             model.eval()
+        elif args.baseline == "heuristic":
+            policy = CC4TeamUCInspiredPolicy()
         else:
             policy = CC4AlertGuidedPolicy()
 
