@@ -36,7 +36,7 @@ been produced in this release.
   including standard CC4 and predeclared generalization shifts.
 - [ ] Report team/per-agent reward, red-session outcomes, availability,
   invalid-action rate, unnecessary intervention, latency and overhead.
-- [ ] Run risk, hierarchy, communication and reward ablations.
+- [ ] Run risk, hierarchy, task-mapping and reward ablations.
 - [ ] Archive raw episode records, configs, checkpoints, source provenance,
   statistical scripts and environment logs.
 - [ ] Complete current novelty review, manuscript, verified citations,
