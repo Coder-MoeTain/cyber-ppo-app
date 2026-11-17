@@ -1,0 +1,33 @@
+project:
+  name: risk-aware-hierarchical-marl-cyber-defense
+  seed: 42
+environment:
+  backend: mock
+  episode_length: 40
+  n_hosts: 8
+  n_agents: 3
+agents:
+  names: [detection, risk, response]
+  observation_dim: 16
+  action_dim: 5
+risk:
+  weights:
+    probability: 0.30
+    impact: 0.30
+    exposure: 0.20
+    criticality: 0.20
+training:
+  algorithm: mappo
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  learning_rate: 0.0003
+  entropy_coefficient: 0.01
+  value_coefficient: 0.5
+  max_grad_norm: 0.5
+  rollout_steps: 128
+  update_epochs: 4
+  minibatch_size: 64
+evaluation:
+  seeds: [101, 202, 303, 404, 505]
+  episodes_per_seed: 10
