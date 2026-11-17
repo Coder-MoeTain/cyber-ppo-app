@@ -25,17 +25,21 @@ This work studies whether an explicit hierarchy and a calibrated local risk sign
 
 ### Contributions to be tested
 
-1. A risk-conditioned manager/worker policy for coordinated multi-agent cyber defense.
-2. A semantic task layer mapping high-level defensive intents to legal CC4 actions through official action masks.
-3. A reproducible evaluation and ablation protocol with held-out seeds and paired inference.
+1. A locally conditioned risk signal learned from privileged offline labels but restricted to local observations at inference, with separate model-selection, calibration and final-test episode splits.
+2. A controlled risk-conditioned hierarchical PPO implementation with semantic task-specific action masks and explicit risk-off/task-mapping/reward-aggregation ablations.
+3. A reproducible CAGE-4 evaluation comparing the proposed policy with IPPO, MAPPO, a documented stateful heuristic, and—if reproducible within the project budget—the prior H-MARL approach.
 
-These are implementation contributions; empirical novelty and efficacy remain to be established by the results.
+These are hypotheses and engineering contributions, not established novelty claims. The project must demonstrate a measurable benefit from the risk signal beyond prior hierarchical CAGE-4 methods. If it cannot, the manuscript should be reframed as a replication/negative-result study rather than claiming a new algorithm.
 
 ## 2. Related Work
 
-This section must be completed with a systematic, citation-verified review before submission. It should cover: (i) RL and MARL for cyber defense; (ii) PPO, MAPPO and centralized training with decentralized execution; (iii) hierarchical RL and options; (iv) risk-sensitive and risk-aware decision-making; and (v) CAGE/CC4 benchmark results and heuristic baselines.
+Hierarchical MARL is not itself a novel contribution in this setting. Singh et al. [1] proposed H-MARL Expert and H-MARL Meta for CAGE-4, using a master policy to select PPO sub-policies for tasks such as investigation and recovery. Their work also showed the value of richer security indicators and reported clean-host, recovery-precision and false-positive metrics. The present implementation differs in using one learned manager/worker actor-critic conditioned on a scalar local-zone risk estimate trained from offline simulator labels; it does not train independently transferable sub-policies. The empirical question must therefore be whether calibrated local risk conditioning adds value beyond a risk-blind hierarchy, not whether hierarchy alone is new.
 
-The final version must explicitly discuss published CC4 findings that heuristic agents can outperform submitted MARL agents, and must distinguish this implementation's Team-UC-inspired baseline from the original competition implementation. Do not claim exact reproduction: the current wrapper does not expose all malicious-file features described in the published heuristic.
+The CAGE-4 challenge evaluation [2] is a necessary benchmark reference: published competition results showed that carefully engineered heuristics could outperform submitted MARL agents. This makes the Team-UC-inspired comparator important, but it must not be described as an exact reproduction because the current wrapper does not expose all malicious-file features described in the published policy. The evaluation should also include the earlier H-MARL method [1] or a carefully documented reproduction if feasible; IPPO and MAPPO alone are insufficient hierarchical baselines.
+
+More recent work further narrows the novelty claim. Posterior-conditioned MARL for adaptive cyber defense [3] introduces a shared attack-context belief inferred online from multi-agent trajectories and evaluates adaptation to mixed and switching attacks in CAGE-4. That differs from this implementation's offline-supervised, per-agent local risk score: the current code has no shared belief, online attack-regime inference, or learned inter-agent communication. Safety-contract graph MARL [4] also argues that reward-only policies can violate operational downtime, false-positive and firewall-change budgets. The present implementation does not yet impose those explicit operational constraints; it must not claim operational safety or deployability from reward and red-session counts alone.
+
+MAPPO provides a strong cooperative-policy baseline [5], while the options framework provides the temporal-abstraction background for hierarchical task selection [6]. The related-work section and final claims must be revised again after the full literature search and after the latest 2026 work is checked for publication status and code availability.
 
 ## 3. Problem Formulation
 
@@ -47,7 +51,7 @@ The team return aggregation must be frozen before final evaluation. The current 
 
 ### 4.1 Risk estimator
 
-A supervised binary estimator predicts whether a red session is present in the local zone. Ground-truth simulator state is used offline to create labels; the trained estimator receives local Blue observations and an agent identity encoding at inference. The final manuscript must report label prevalence, train/validation split provenance, AUROC, AUPRC, Brier score, expected calibration error, calibration method, and failure cases.
+A supervised binary estimator predicts whether a red session is present in the local zone. Ground-truth simulator state is used offline to create labels; the trained estimator receives local Blue observations and an agent identity encoding at inference. The implemented protocol separates training seeds (11–111), model-selection seeds (201–220), temperature-calibration seeds (301–320), and final risk-model test seeds (401–420). The final policy evaluation uses a separate seed range (501–600). The training script reports test AUROC, AUPRC, Brier score and ECE, together with 95% episode-cluster bootstrap intervals. These seed assignments and the final sample/episode counts must be preserved in the experiment manifest.
 
 ### 4.2 Hierarchical policy
 
@@ -79,15 +83,13 @@ Unavailable metrics must be marked as unavailable rather than inferred from rewa
 
 ## 6. Ablation Studies
 
-The final evaluation should include at minimum:
-1. RA-HMAPPO with the trained risk estimator versus a constant-risk control.
-2. Hierarchical manager/worker policy versus a flat policy baseline.
-3. Learned manager task selection versus deterministic task allocation.
-4. Sum versus mean team reward aggregation.
-5. Alternative semantic task mappings and action-mask diagnostics.
-6. Risk estimator calibration/uncertainty variants.
+The current executable ablation runner implements:
+1. RA-HMAPPO with the trained risk estimator versus a constant-risk (0.5) control.
+2. Semantic task-specific action masks versus unconstrained task-to-action mapping (all legal base actions available to each task).
+3. Sum versus mean team-reward aggregation.
+4. Hierarchical manager/worker versus flat MAPPO in the main baseline matrix.
 
-Each ablation must have a precise implementation definition, matched interaction budget, independent training seeds, identical held-out episodes, and a predeclared primary comparison. Results must not be described as an ablation if only a different checkpoint or training budget was used.
+Deterministic task allocation and risk-calibration/uncertainty variants remain planned, not implemented. The prior H-MARL approach [1] is a required additional comparator if a faithful reproduction is feasible. Each ablation must use the same ten training seeds, the same 100 held-out evaluation seeds, and matched environment interaction budgets.
 
 ## 7. Statistical Analysis
 
@@ -129,3 +131,18 @@ To be written after the full matrix, ablations, robustness checks, and statistic
 ## Reproducibility Statement
 
 Release the exact research branch commit, pinned CC4 source commit, dependency lock, all run configurations, training and evaluation seeds, checkpoints, raw JSONL episode records, risk datasets or documented data-generation procedure, analysis outputs, test reports, and hardware/software environment. Clearly identify any artifacts that cannot be redistributed.
+
+
+## References
+
+[1] A. V. Singh, E. Rathbun, E. Graham, L. Oakley, S. Boboila, A. Oprea, and P. Chin, “Hierarchical Multi-agent Reinforcement Learning for Cyber Network Defense,” arXiv:2410.17351, 2024. https://arxiv.org/abs/2410.17351
+
+[2] M. Kiely et al., “Exploring the Efficacy of Multi-Agent Reinforcement Learning for Autonomous Cyber Defence: A CAGE Challenge 4 Perspective,” *Proceedings of the AAAI Conference on Artificial Intelligence*, vol. 39, no. 28, pp. 28907–28913, 2025. doi:10.1609/aaai.v39i28.35158.
+
+[3] A. Kazeminajafabadi, A. Ravari, N. D. Bastian, T. Lan, and M. Imani, “Posterior-conditioned multi-agent reinforcement learning for adaptive cyber defense,” *Artificial Intelligence*, vol. 360, article 104606, 2026. doi:10.1016/j.artint.2026.104606.
+
+[4] J. L. L. de Jesus Silva, “Safety-Contract Graph Multi-Agent Reinforcement Learning for Autonomous Network Security Response,” arXiv:2606.13832, 2026. https://arxiv.org/abs/2606.13832
+
+[5] C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen, and Y. Wu, “The Surprising Effectiveness of PPO in Cooperative, Multi-Agent Games,” *Advances in Neural Information Processing Systems*, vol. 35, 2022. https://arxiv.org/abs/2103.01955
+
+[6] R. S. Sutton, D. Precup, and S. Singh, “Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning,” *Artificial Intelligence*, vol. 112, no. 1–2, pp. 181–211, 1999. doi:10.1016/S0004-3702(99)00052-1
