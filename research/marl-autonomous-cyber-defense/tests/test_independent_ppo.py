@@ -18,3 +18,13 @@ def test_ippo_mock_training_and_masking():
     metrics = trainer.update(rollout)
     assert np.isfinite(metrics["mean_actor_loss"])
     assert set(metrics["agents"]) == set(env.possible_agents)
+
+
+def test_ippo_training_callback_receives_progress():
+    trainer = IndependentPPOTrainer(
+        MockEnterpriseEnv(n_hosts=5, episode_length=3, seed=61),
+        IPPOConfig(update_epochs=1, minibatch_size=3, hidden_dim=32), seed=61,
+    )
+    updates = []
+    trainer.train(7, 3, on_update=updates.append)
+    assert [row["environment_steps"] for row in updates] == [3, 6, 7]
