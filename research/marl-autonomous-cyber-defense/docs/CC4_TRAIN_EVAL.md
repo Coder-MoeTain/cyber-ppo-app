@@ -30,8 +30,10 @@ red-session host counts by defended zone. It does not claim to measure service
 availability or mitigation latency; add and validate those metrics before
 using them as paper outcomes.
 
-The heuristic is an original simple alert-guided baseline, not an exact
-reproduction of a published competition agent. Report that limitation.
+The primary heuristic is a Team UC-inspired stateful reimplementation, not
+an exact reproduction of the original competition submission. It omits
+malicious-file flags from the published description. The separate alert-only
+baseline is simpler. Report these limitations.
 
 
 ## Full reproducible standard benchmark matrix
