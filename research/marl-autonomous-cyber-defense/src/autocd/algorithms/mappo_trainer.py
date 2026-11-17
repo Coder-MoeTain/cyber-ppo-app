@@ -228,7 +228,7 @@ class MAPPOTrainer:
                 "critic_loss": float(np.mean(critic_losses)),
                 "entropy": float(np.mean(entropies))}
 
-    def train(self, total_steps=1024, rollout_steps=128):
+    def train(self, total_steps=1024, rollout_steps=128, on_update=None):
         if total_steps < 1 or rollout_steps < 1:
             raise ValueError("step counts must be positive")
         history = []
@@ -237,6 +237,9 @@ class MAPPOTrainer:
             rollout = self.collect_rollout(min(rollout_steps, total_steps - steps))
             metrics = self.update(rollout)
             steps += len(rollout["rewards"])
-            history.append({"environment_steps": steps, **metrics,
-                            "episode_returns": rollout["episode_returns"]})
+            record = {"environment_steps": steps, **metrics,
+                      "episode_returns": rollout["episode_returns"]}
+            history.append(record)
+            if on_update is not None:
+                on_update(record)
         return history
