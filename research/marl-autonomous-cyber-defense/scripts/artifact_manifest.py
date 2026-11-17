@@ -8,6 +8,24 @@ import platform
 import subprocess
 import sys
 
+try:
+    import torch
+except ImportError:
+    torch = None
+
+
+def hardware_metadata():
+    if torch is None:
+        return {"torch_version": None, "cuda_version": None, "cuda_available": False, "gpus": []}
+    available = bool(torch.cuda.is_available())
+    return {
+        "torch_version": torch.__version__,
+        "cuda_version": torch.version.cuda,
+        "cuda_available": available,
+        "gpus": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
+        if available else [],
+    }
+
 
 def sha256_file(path):
     digest = hashlib.sha256()
@@ -66,6 +84,7 @@ def create_manifest(paths, output):
         "git_commit": git_commit(),
         "python_version": platform.python_version(),
         "platform": platform.platform(),
+        "hardware": hardware_metadata(),
         "files": files,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
