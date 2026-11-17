@@ -70,7 +70,8 @@ done
 
 "$PYTHON" scripts/artifact_manifest.py create \
   --paths "$OUT" "$RESULTS" data/cc4_risk_train.npz data/cc4_risk_validation.npz \
-  data/cc4_risk_calibration.npz data/cc4_risk_test.npz \
+  data/cc4_risk_calibration.npz data/cc4_risk_test.npz configs/cc4.lock.yaml \
+  requirements-cc4-validation.txt pyproject.toml docs/EXPERIMENT_PROTOCOL.md \
   --output "$RESULTS/artifact_manifest.json"
 
 echo "Standard CC4 matrix and paired analysis complete. Review diagnostics before interpreting results."
