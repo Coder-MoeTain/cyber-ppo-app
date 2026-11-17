@@ -50,6 +50,7 @@ been produced in this release.
 - [x] Regression tests for paired result matrices, duplicate/missing seed pairs,
   heuristic pairing, deterministic bootstrap, and risk-split separation added;
   execution in CI is still pending.
+- [x] Novelty gap analysis added covering the prior H-MARL CAGE-4 work and 2026 risk-conditioned/safety-contract methods.
 - [x] Manuscript structure drafted with explicit evidence-pending sections; it
   is not a complete submission manuscript until results, related-work citations,
   discussion, and conclusions are completed.
