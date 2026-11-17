@@ -19,6 +19,7 @@ def main():
     parser.add_argument("--no-risk-glob", required=True)
     parser.add_argument("--no-mapping-glob", required=True)
     parser.add_argument("--mean-reward-glob", required=True)
+    parser.add_argument("--risk-rule-glob", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--bootstrap", type=int, default=10000)
     parser.add_argument("--seed", type=int, default=1234)
@@ -35,6 +36,7 @@ def main():
         "no_risk": args.no_risk_glob,
         "no_semantic_mapping": args.no_mapping_glob,
         "mean_team_reward": args.mean_reward_glob,
+        "risk_rule_manager": args.risk_rule_glob,
     }
     matrices, records_by_name = {}, {}
     training_seeds = evaluation_seeds = None
@@ -54,7 +56,7 @@ def main():
         records_by_name[name] = records
 
     comparisons, p_values, labels = {}, [], []
-    for name in ("no_risk", "no_semantic_mapping", "mean_team_reward"):
+    for name in ("no_risk", "no_semantic_mapping", "mean_team_reward", "risk_rule_manager"):
         left, right = matrices["full"], matrices[name]
         full_seed_means, ablation_seed_means = left.mean(axis=1), right.mean(axis=1)
         test = paired_permutation_test(full_seed_means, ablation_seed_means, seed=args.seed)
@@ -116,6 +118,7 @@ def main():
             "No superiority claim is warranted without reviewing raw episodes and assumptions.",
             "Unconstrained task mapping removes semantic task-specific worker masks; it does not remove the manager/worker hierarchy.",
             "The flat MAPPO baseline in the main matrix is the non-hierarchical comparator.",
+            "The deterministic risk-rule manager is a fixed monitor/investigate threshold policy; it is not a learned manager.",
         ],
     }
     output = Path(args.output)
