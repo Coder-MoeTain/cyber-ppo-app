@@ -49,7 +49,13 @@ class RiskAwareHierarchicalTrainer:
         device: str = "cpu",
         reward_aggregation: str = "sum",
         task_action_mapper: Callable | None = None,
+        manager_mode: str = "learned",
+        risk_rule_threshold: float = 0.6,
     ):
+        if manager_mode not in {"learned", "risk_rule"}:
+            raise ValueError("manager_mode must be 'learned' or 'risk_rule'")
+        if not np.isfinite(risk_rule_threshold) or not 0.0 <= risk_rule_threshold <= 1.0:
+            raise ValueError("risk_rule_threshold must be in [0,1]")
         if not callable(risk_fn):
             raise TypeError("risk_fn is required and must be callable")
         if reward_aggregation not in {"sum", "mean"}:
@@ -60,6 +66,8 @@ class RiskAwareHierarchicalTrainer:
         self.device = torch.device(device)
         self.reward_aggregation = reward_aggregation
         self.task_action_mapper = task_action_mapper
+        self.manager_mode = manager_mode
+        self.risk_rule_threshold = float(risk_rule_threshold)
         np.random.seed(self.seed)
         torch.manual_seed(self.seed)
         self.generator = torch.Generator(device=self.device).manual_seed(self.seed)
@@ -148,14 +156,24 @@ class RiskAwareHierarchicalTrainer:
                     task_mask = task_action_masks.any(axis=1)
                     if not task_mask.any():
                         raise ValueError(f"No available high-level task for {agent}")
-                    manager_dist = self.model.manager_distribution(
-                        agent, obs_tensor, risk_tensor,
-                        torch.as_tensor(task_mask, dtype=torch.bool, device=self.device),
-                    )
-                    task_tensor = torch.multinomial(
-                        manager_dist.probs, 1, generator=self.generator
-                    ).squeeze(-1)
-                    selected_task = int(task_tensor.item())
+                    if self.manager_mode == "risk_rule":
+                        preferred_task = 1 if risk >= self.risk_rule_threshold else 0
+                        selected_task = (
+                            preferred_task if bool(task_mask[preferred_task])
+                            else int(np.flatnonzero(task_mask)[0])
+                        )
+                        task_tensor = torch.tensor([selected_task], dtype=torch.long, device=self.device)
+                        manager_log_prob = 0.0
+                    else:
+                        manager_dist = self.model.manager_distribution(
+                            agent, obs_tensor, risk_tensor,
+                            torch.as_tensor(task_mask, dtype=torch.bool, device=self.device),
+                        )
+                        task_tensor = torch.multinomial(
+                            manager_dist.probs, 1, generator=self.generator
+                        ).squeeze(-1)
+                        selected_task = int(task_tensor.item())
+                        manager_log_prob = float(manager_dist.log_prob(task_tensor).item())
                     worker_mask = task_action_masks[selected_task]
                     worker_dist = self.model.worker_distribution(
                         agent, obs_tensor, risk_tensor, task_tensor,
@@ -167,7 +185,7 @@ class RiskAwareHierarchicalTrainer:
                     task, action = int(task_tensor.item()), int(action_tensor.item())
                     observations[agent], risks[agent] = obs, risk
                     tasks[agent], actions[agent] = task, action
-                    manager_logps[agent] = float(manager_dist.log_prob(task_tensor).item())
+                    manager_logps[agent] = manager_log_prob
                     worker_logps[agent] = float(worker_dist.log_prob(action_tensor).item())
                     masks[agent] = worker_mask
                     task_masks[agent] = task_mask
@@ -292,15 +310,20 @@ class RiskAwareHierarchicalTrainer:
                     )
                     new_manager = evaluated["manager_log_prob"]
                     new_worker = evaluated["worker_log_prob"]
-                    old_joint = old_manager_t[agent][idx] + old_worker_t[agent][idx]
-                    new_joint = new_manager + new_worker
+                    if self.manager_mode == "risk_rule":
+                        old_joint = old_worker_t[agent][idx]
+                        new_joint = new_worker
+                        manager_entropy.append(torch.zeros((), device=self.device))
+                    else:
+                        old_joint = old_manager_t[agent][idx] + old_worker_t[agent][idx]
+                        new_joint = new_manager + new_worker
+                        manager_entropy.append(evaluated["manager_entropy"].mean())
                     ratio = torch.exp(new_joint - old_joint)
                     unclipped = ratio * advantages[idx]
                     clipped = torch.clamp(
                         ratio, 1.0 - self.cfg.clip_epsilon, 1.0 + self.cfg.clip_epsilon
                     ) * advantages[idx]
                     agent_actor_losses.append(-torch.minimum(unclipped, clipped).mean())
-                    manager_entropy.append(evaluated["manager_entropy"].mean())
                     worker_entropy.append(evaluated["worker_entropy"].mean())
 
                 actor_loss = torch.stack(agent_actor_losses).mean()
