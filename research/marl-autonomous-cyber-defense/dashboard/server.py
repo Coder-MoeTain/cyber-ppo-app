@@ -275,6 +275,37 @@ def logs(_: None = Depends(require_auth), lines: int = 200):
     return {"lines": path.read_text(encoding="utf-8", errors="replace").splitlines()[-max(1, min(lines, 1000)): ]}
 
 
+@app.get("/api/model")
+def model_details(_: None = Depends(require_auth)):
+    state = job_status()
+    checkpoint = state.get("rolling_checkpoint") or state.get("checkpoint")
+    if not checkpoint or not Path(checkpoint).is_file():
+        return {"available": False, "message": "A training checkpoint will appear after the first completed rollout."}
+    try:
+        payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
+        weights = payload.get("model_state_dict", {})
+        metadata = payload.get("metadata", {})
+        parameters = sum(int(value.numel()) for value in weights.values() if torch.is_tensor(value))
+        return {
+            "available": True,
+            "algorithm": metadata.get("algorithm", state.get("algorithm")),
+            "seed": metadata.get("seed", state.get("seed")),
+            "environment_steps": payload.get("environment_steps"),
+            "total_steps": payload.get("total_steps"),
+            "parameter_count": parameters,
+            "agents": metadata.get("agents", []),
+            "observation_dim": metadata.get("observation_dim"),
+            "action_dims": metadata.get("action_dims"),
+            "global_state_dim": metadata.get("global_state_dim"),
+            "config": metadata.get("config", {}),
+            "device": metadata.get("device"),
+            "checkpoint": checkpoint,
+            "saved_at_utc": payload.get("saved_at_utc"),
+        }
+    except (OSError, RuntimeError, ValueError, TypeError) as exc:
+        return {"available": False, "message": f"Checkpoint metadata unavailable: {exc}"}
+
+
 @app.get("/api/checkpoints")
 def checkpoints(_: None = Depends(require_auth)):
     if not RUNS.exists():
