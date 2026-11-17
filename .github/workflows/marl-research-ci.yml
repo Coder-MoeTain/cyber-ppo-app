@@ -28,7 +28,7 @@ jobs:
       - name: Unit tests
         run: python -m pytest -q
       - name: Compile all package and experiment scripts
-        run: python -m compileall -q src scripts
+        run: python -m compileall -q src scripts && bash -n scripts/run_standard_cc4_matrix.sh
       - name: Mock environment smoke test
         run: python scripts/phase1_smoke_test.py
       - name: Mock MAPPO training smoke test (not CybORG)
